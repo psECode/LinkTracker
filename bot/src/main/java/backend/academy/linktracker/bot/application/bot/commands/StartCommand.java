@@ -22,7 +22,7 @@ public class StartCommand implements CommandInterface {
 
     @Override
     public String getMenuDescription() {
-        return "начать работу с ботом";
+        return messageSource.getMessage("bot.command.start.description", null, Locale.of("ru"));
     }
 
     @Override

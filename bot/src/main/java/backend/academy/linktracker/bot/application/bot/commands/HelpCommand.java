@@ -19,7 +19,7 @@ public class HelpCommand implements CommandInterface {
 
     @Override
     public String getMenuDescription() {
-        return "Вывести информацию о боте";
+        return messageSource.getMessage("bot.command.help.description", null, Locale.of("ru"));
     }
 
     @Override
