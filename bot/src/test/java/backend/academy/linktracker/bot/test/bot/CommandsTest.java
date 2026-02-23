@@ -6,11 +6,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.linktracker.application.bot.commands.HelpCommand;
-import backend.academy.linktracker.application.bot.commands.StartCommand;
-import backend.academy.linktracker.application.bot.commands.UnknownCommand;
-import backend.academy.linktracker.application.users.usecases.CreateUserUseCase;
-import backend.academy.linktracker.domain.users.entities.User;
+import backend.academy.linktracker.bot.application.bot.commands.HelpCommand;
+import backend.academy.linktracker.bot.application.bot.commands.StartCommand;
+import backend.academy.linktracker.bot.application.bot.commands.UnknownCommand;
+import backend.academy.linktracker.bot.application.users.usecases.CreateUserUseCase;
+import backend.academy.linktracker.bot.domain.users.entities.User;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

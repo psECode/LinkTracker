@@ -2,9 +2,9 @@ package backend.academy.linktracker.bot.test.users.repository;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import backend.academy.linktracker.domain.users.dtos.CreateUserDto;
-import backend.academy.linktracker.domain.users.entities.User;
-import backend.academy.linktracker.infrastructure.mocks.users.MemoryUsersRepository;
+import backend.academy.linktracker.bot.domain.users.dtos.CreateUserDto;
+import backend.academy.linktracker.bot.domain.users.entities.User;
+import backend.academy.linktracker.bot.infrastructure.mocks.users.MemoryUsersRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

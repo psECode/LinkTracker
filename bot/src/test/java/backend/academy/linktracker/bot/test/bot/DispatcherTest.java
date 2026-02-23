@@ -5,14 +5,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.linktracker.application.bot.CommandDispatcher;
-import backend.academy.linktracker.application.bot.commands.HelpCommand;
-import backend.academy.linktracker.application.bot.commands.StartCommand;
-import backend.academy.linktracker.application.bot.commands.UnknownCommand;
-import backend.academy.linktracker.application.users.usecases.CreateUserUseCase;
-import backend.academy.linktracker.domain.bot.CommandInterface;
-import backend.academy.linktracker.domain.bot.MessageSenderPort;
-import backend.academy.linktracker.domain.users.entities.User;
+import backend.academy.linktracker.bot.application.bot.CommandDispatcher;
+import backend.academy.linktracker.bot.application.bot.commands.HelpCommand;
+import backend.academy.linktracker.bot.application.bot.commands.StartCommand;
+import backend.academy.linktracker.bot.application.bot.commands.UnknownCommand;
+import backend.academy.linktracker.bot.application.users.usecases.CreateUserUseCase;
+import backend.academy.linktracker.bot.domain.bot.CommandInterface;
+import backend.academy.linktracker.bot.domain.bot.MessageSenderService;
+import backend.academy.linktracker.bot.domain.users.entities.User;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ import org.springframework.context.MessageSource;
 class DispatcherTest {
 
     @Mock
-    private MessageSenderPort messageSenderPort;
+    private MessageSenderService messageSenderService;
 
     @Mock
     private MessageSource messageSource;
@@ -44,7 +44,7 @@ class DispatcherTest {
                 new HelpCommand(messageSource),
                 new UnknownCommand(messageSource));
 
-        dispatcher = new CommandDispatcher(commands, messageSenderPort);
+        dispatcher = new CommandDispatcher(commands, messageSenderService);
     }
 
     @Test
@@ -80,6 +80,6 @@ class DispatcherTest {
     }
 
     private void thenMessageShouldBeSent() {
-        verify(messageSenderPort).sendText(chatId, "True");
+        verify(messageSenderService).sendText(chatId, "True");
     }
 }
