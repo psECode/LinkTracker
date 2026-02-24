@@ -21,7 +21,7 @@ public class MenuConfigurator {
 
     @PostConstruct
     public void registerMenuCommands() {
-        com.pengrad.telegrambot.model.BotCommand[] botCommands = commands.stream()
+        BotCommand[] botCommands = commands.stream()
                 .filter(cmd -> cmd.getMenuName() != null)
                 .map(cmd -> new BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
                 .toArray(BotCommand[]::new);
