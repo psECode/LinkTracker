@@ -2,6 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.bot;
 
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.request.SetMyCommands;
 import com.pengrad.telegrambot.response.BaseResponse;
 import jakarta.annotation.PostConstruct;
@@ -22,8 +23,8 @@ public class MenuConfigurator {
     public void registerMenuCommands() {
         com.pengrad.telegrambot.model.BotCommand[] botCommands = commands.stream()
                 .filter(cmd -> cmd.getMenuName() != null)
-                .map(cmd -> new com.pengrad.telegrambot.model.BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
-                .toArray(com.pengrad.telegrambot.model.BotCommand[]::new);
+                .map(cmd -> new BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
+                .toArray(BotCommand[]::new);
 
         SetMyCommands request = new SetMyCommands(botCommands);
         BaseResponse response = bot.execute(request);

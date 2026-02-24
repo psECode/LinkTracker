@@ -12,8 +12,6 @@ public class TelegramConfiguration {
 
     @Bean
     public TelegramBot telegramBot(TelegramProperties properties) {
-        log.info("Бот запускается с токеном: {}...", properties.getToken().substring(0, 5));
-        System.out.println();
         var builder = new TelegramBot.Builder(properties.getToken())
                 .apiUrl(properties.getUrl())
                 .updateListenerSleep(properties.getUpdateListenerSleep().toMillis());

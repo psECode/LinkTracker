@@ -34,10 +34,6 @@ public class CommandDispatcher {
 
         CommandInterface handler = handlers.get(type);
 
-        if (handler == null) {
-            handler = handlers.get(CommandType.UNKNOWN);
-        }
-
         try {
             String response = handler.execute(chatId, text);
             messageSenderService.sendText(chatId, response);
