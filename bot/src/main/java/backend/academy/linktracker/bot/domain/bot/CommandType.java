@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 public enum CommandType {
     START("^/start$"),
     HELP("^/help$"),
+    TRACK("^/track(\\s+.*)?$"),
+    LIST("^/list(\\s+.*)?$"),
+    UNTRACK("^/untrack(\\s+.*)?$"),
     UNKNOWN(null);
 
     private final String regex;

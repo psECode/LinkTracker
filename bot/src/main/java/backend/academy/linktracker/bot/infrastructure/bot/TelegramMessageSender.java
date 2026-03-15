@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@SuppressWarnings("deprecation")
 public class TelegramMessageSender implements MessageSenderService {
 
     private final TelegramBot bot;
