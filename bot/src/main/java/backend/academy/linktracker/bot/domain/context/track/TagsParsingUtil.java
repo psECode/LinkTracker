@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TagsParsingUtil {
+    private TagsParsingUtil() {}
+
     public static List<String> parseTags(String tagsPart) {
         if (tagsPart == null || tagsPart.isBlank() || tagsPart.equalsIgnoreCase("нет")) {
             return List.of();

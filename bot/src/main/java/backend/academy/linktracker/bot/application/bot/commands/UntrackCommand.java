@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.bot.application.context.LinkListFormattingUtil;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.SaveUntrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
 import backend.academy.linktracker.bot.domain.api.ScrapperClient;
@@ -7,7 +8,6 @@ import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.CommandType;
-import backend.academy.linktracker.bot.domain.bot.LinkListFormattingUtil;
 import backend.academy.linktracker.bot.domain.context.ContextType;
 import backend.academy.linktracker.bot.domain.context.untrack.UntrackContext;
 import backend.academy.linktracker.bot.domain.context.untrack.UntrackStep;

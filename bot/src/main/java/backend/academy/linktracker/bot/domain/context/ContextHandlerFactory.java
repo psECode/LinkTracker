@@ -14,7 +14,6 @@ public class ContextHandlerFactory {
 
     @Autowired
     public ContextHandlerFactory(List<ContextHandler> handlerBeans) {
-        // Собираем мапу: Тип из Enum -> Бин обработчика
         this.handlers = handlerBeans.stream().collect(Collectors.toMap(ContextHandler::getSupportedType, h -> h));
     }
 

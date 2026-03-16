@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.linktracker.scrapper.domain.api.github.GithubClient;
 import backend.academy.linktracker.scrapper.domain.api.github.GithubResponse;
-import backend.academy.linktracker.scrapper.infrastructure.api.GithubLinkChecker;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.GithubLinkChecker;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

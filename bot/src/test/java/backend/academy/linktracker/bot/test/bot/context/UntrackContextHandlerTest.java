@@ -17,6 +17,7 @@ import backend.academy.linktracker.bot.domain.context.ContextResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
@@ -36,6 +37,7 @@ class UntrackContextHandlerTest {
     @Mock
     private MessageSource messageSource;
 
+    @InjectMocks
     private UntrackContextHandler handler;
 
     private final Long chatId = 12345L;

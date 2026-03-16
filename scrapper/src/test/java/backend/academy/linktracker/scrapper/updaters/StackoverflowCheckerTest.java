@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import backend.academy.linktracker.scrapper.domain.api.stackoverflow.StackoverflowClient;
 import backend.academy.linktracker.scrapper.domain.api.stackoverflow.StackoverflowItem;
 import backend.academy.linktracker.scrapper.domain.api.stackoverflow.StackoverflowResponse;
-import backend.academy.linktracker.scrapper.infrastructure.api.StackoverflowLinkChecker;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.StackoverflowLinkChecker;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;

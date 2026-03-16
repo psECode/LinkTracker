@@ -1,6 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
-import backend.academy.linktracker.scrapper.domain.api.dtos.ApiErrorResponse;
+import backend.academy.linktracker.scrapper.infrastructure.api.dtos.ApiErrorResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidLinkException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkAlreadyTrackedException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkNotFoundException;

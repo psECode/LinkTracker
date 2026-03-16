@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper.infrastructure.api;
+package backend.academy.linktracker.scrapper.infrastructure.api.checkers;
 
 import backend.academy.linktracker.scrapper.domain.api.github.GithubClient;
 import backend.academy.linktracker.scrapper.domain.links.LinkType;

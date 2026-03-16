@@ -5,10 +5,11 @@ import backend.academy.linktracker.scrapper.application.links.usecases.UpdateTra
 import backend.academy.linktracker.scrapper.application.subscriptions.usecases.ReadUsersUuidsByLinkIdUseCase;
 import backend.academy.linktracker.scrapper.application.users.usecases.ReadUserByUUIDUseCase;
 import backend.academy.linktracker.scrapper.domain.api.BotClient;
-import backend.academy.linktracker.scrapper.domain.api.dtos.LinkUpdate;
 import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkChecker;
+import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;

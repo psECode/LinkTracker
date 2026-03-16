@@ -1,11 +1,11 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.bot.application.context.LinkListFormattingUtil;
 import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.CommandType;
-import backend.academy.linktracker.bot.domain.bot.LinkListFormattingUtil;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
