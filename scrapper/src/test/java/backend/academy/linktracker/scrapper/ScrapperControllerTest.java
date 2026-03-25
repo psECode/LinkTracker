@@ -146,7 +146,9 @@ class ScrapperControllerTest {
     @Test
     void wrongLinkTest() throws Exception {
         AddLinkRequest request = new AddLinkRequest(URI.create("https://google.com"), List.of());
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(new User()));
+
+        when(readUserByTgIdUseCase.execute(chatId))
+                .thenReturn(Optional.of(User.builder().build()));
 
         mockMvc.perform(post("/links")
                         .header("Tg-Chat-Id", chatId)

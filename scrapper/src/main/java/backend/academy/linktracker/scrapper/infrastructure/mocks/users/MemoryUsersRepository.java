@@ -7,9 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "mock")
 public class MemoryUsersRepository implements UsersRepository {
 
     private final Map<Long, User> storage = new ConcurrentHashMap<>();
@@ -26,14 +28,14 @@ public class MemoryUsersRepository implements UsersRepository {
 
     @Override
     public Optional<User> save(CreateUserDto dto) {
-        if (storage.containsKey(dto.getChatId())) {
+        if (storage.containsKey(dto.chatId())) {
             return Optional.empty();
         }
 
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .isActive(true)
-                .chatId(dto.getChatId())
+                .chatId(dto.chatId())
                 .build();
 
         storage.put(user.getChatId(), user);

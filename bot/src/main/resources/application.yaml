@@ -7,6 +7,10 @@ spring:
   messages:
     encoding: UTF-8
     fallback-to-system-locale: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 app:
   telegram:
@@ -16,3 +20,4 @@ app:
     debug: false
   scrapper:
     url: http://localhost:8081
+  access-type: redis
