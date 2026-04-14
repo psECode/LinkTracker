@@ -35,17 +35,30 @@ public class UntrackCommand implements CommandInterface {
     @Override
     public String execute(Long chatId, String text) {
         String[] parts = text.trim().split("\\s+", 2);
+        System.out.println("here");
+        try {
+            if (parts.length == 1) {
+                return startUntrackContext(chatId);
+            }
 
-        if (parts.length == 1) {
-            return startUntrackContext(chatId);
+            return executeImmediately(chatId, parts[1]);
+        } catch (HttpClientErrorException.NotFound e) {
+            ApiErrorResponse errorBody = parseError(e);
+
+            if (errorBody != null && "UserNotFoundException".equals(errorBody.exceptionName())) {
+                return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
+            }
+
+            return messageSource.getMessage("bot.error.link_not_found", null, Locale.of("ru"));
+
+        } catch (Exception e) {
+            return messageSource.getMessage("bot.error", null, Locale.of("ru"));
         }
-
-        return executeImmediately(chatId, parts[1]);
     }
 
     private String startUntrackContext(Long chatId) {
-        ListLinksResponse response = scrapperClient.getAllLinks(chatId);
 
+        ListLinksResponse response = scrapperClient.getAllLinks(chatId);
         if (response.links().isEmpty()) {
             return messageSource.getMessage("bot.command.list.empty", null, Locale.of("ru"));
         }
@@ -63,23 +76,9 @@ public class UntrackCommand implements CommandInterface {
     }
 
     private String executeImmediately(Long chatId, String link) {
-        try {
-            scrapperClient.removeLink(chatId, new RemoveLinkRequest(URI.create(link)));
+        scrapperClient.removeLink(chatId, new RemoveLinkRequest(URI.create(link)));
 
-            return messageSource.getMessage("bot.command.untrack.success", new Object[] {link}, Locale.of("ru"));
-
-        } catch (HttpClientErrorException.NotFound e) {
-            ApiErrorResponse errorBody = parseError(e);
-
-            if (errorBody != null && "UserNotFoundException".equals(errorBody.exceptionName())) {
-                return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
-            }
-
-            return messageSource.getMessage("bot.error.link_not_found", new Object[] {link}, Locale.of("ru"));
-
-        } catch (Exception e) {
-            return messageSource.getMessage("bot.error", null, Locale.of("ru"));
-        }
+        return messageSource.getMessage("bot.command.untrack.success", new Object[] {link}, Locale.of("ru"));
     }
 
     private ApiErrorResponse parseError(HttpClientErrorException e) {

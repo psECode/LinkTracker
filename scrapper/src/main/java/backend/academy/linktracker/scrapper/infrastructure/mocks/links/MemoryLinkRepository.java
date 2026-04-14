@@ -10,9 +10,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "mock")
 public class MemoryLinkRepository implements LinkRepository {
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 

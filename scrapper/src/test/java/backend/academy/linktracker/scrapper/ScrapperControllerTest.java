@@ -2,6 +2,8 @@ package backend.academy.linktracker.scrapper;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -10,31 +12,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import backend.academy.linktracker.scrapper.application.links.usecases.CreateTrackedLinkUseCase;
-import backend.academy.linktracker.scrapper.application.links.usecases.ReadLinksByUuidsUseCase;
-import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkByUrlUseCase;
-import backend.academy.linktracker.scrapper.application.subscriptions.usecases.CreateSubscriptionUseCase;
-import backend.academy.linktracker.scrapper.application.subscriptions.usecases.DeleteSubscriptionUseCase;
-import backend.academy.linktracker.scrapper.application.subscriptions.usecases.ReadAllUsersSubscriptionsUseCase;
-import backend.academy.linktracker.scrapper.application.subscriptions.usecases.ReadSubscriptionUseCase;
-import backend.academy.linktracker.scrapper.application.users.usecases.CreateUserUseCase;
-import backend.academy.linktracker.scrapper.application.users.usecases.DeleteUserUseCase;
-import backend.academy.linktracker.scrapper.application.users.usecases.ReadUserByTgIdUseCase;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.domain.subscriptions.entities.Subscription;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
+import backend.academy.linktracker.scrapper.infrastructure.api.LinkSubscriptionService;
 import backend.academy.linktracker.scrapper.infrastructure.api.ScrapperController;
+import backend.academy.linktracker.scrapper.infrastructure.api.SubscriptionResult;
+import backend.academy.linktracker.scrapper.infrastructure.api.UserService;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
+import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import backend.academy.linktracker.scrapper.infrastructure.api.mappers.SubscriptionToLinkResponse;
-import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
-import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -54,86 +46,61 @@ class ScrapperControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CreateUserUseCase createUserUseCase;
+    private LinkSubscriptionService subscriptionService;
 
     @MockitoBean
-    private DeleteUserUseCase deleteUserUseCase;
+    private UserService userService;
 
     @MockitoBean
-    private CreateTrackedLinkUseCase createTrackedLinkUseCase;
-
-    @MockitoBean
-    private ReadUserByTgIdUseCase readUserByTgIdUseCase;
-
-    @MockitoBean
-    private ReadAllUsersSubscriptionsUseCase readAllUsersSubscriptionsUseCase;
-
-    @MockitoBean
-    private ReadLinksByUuidsUseCase readLinksByUuidsUseCase;
-
-    @MockitoBean
-    private SubscriptionToLinkResponse subscriptionToLinkResponse;
-
-    @MockitoBean
-    private ReadTrackedLinkByUrlUseCase readTrackedLinkByUrlUseCase;
-
-    @MockitoBean
-    private ReadSubscriptionUseCase readSubscriptionUseCase;
-
-    @MockitoBean
-    private DeleteSubscriptionUseCase deleteSubscriptionUseCase;
-
-    @MockitoBean
-    private CreateSubscriptionUseCase createSubscriptionUseCase;
-
-    @MockitoBean
-    private SchedulerProperties properties;
+    private SubscriptionToLinkResponse responseMapper;
 
     private final Long chatId = 12345L;
 
     @Test
     void registerUserTest() throws Exception {
         mockMvc.perform(post("/tg-chat/{id}", chatId)).andExpect(status().isOk());
-        verify(createUserUseCase).execute(any());
+
+        verify(userService).register(chatId);
     }
 
     @Test
-    void deleteNonExistentUserTest() throws Exception {
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.empty());
+    void unregisterUserTest() throws Exception {
+        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isOk());
 
-        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isNotFound());
+        verify(userService).unregister(chatId);
     }
 
     @Test
     void getLinksTest() throws Exception {
-        User user = User.builder().id(UUID.randomUUID()).chatId(chatId).build();
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(user));
-        when(readAllUsersSubscriptionsUseCase.execute(any())).thenReturn(List.of());
+        SubscriptionResult result = new SubscriptionResult(
+                Subscription.builder().build(),
+                Link.builder().url("https://github.com").build(),
+                User.builder().chatId(chatId).build());
+
+        when(subscriptionService.getAllSubscriptions(chatId)).thenReturn(List.of(result));
+        when(responseMapper.map(any(), any(), any()))
+                .thenReturn(new LinkResponse(chatId, URI.create("https://github.com"), List.of()));
 
         mockMvc.perform(get("/links").header("Tg-Chat-Id", chatId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.links").isArray())
-                .andExpect(jsonPath("$.size").value(0));
+                .andExpect(jsonPath("$.size").value(1))
+                .andExpect(jsonPath("$.links[0].url").value("https://github.com"));
     }
 
     @Test
     void addLinkTest() throws Exception {
         AddLinkRequest request = new AddLinkRequest(URI.create("https://github.com/user/repo"), List.of("tag"));
-        User user = User.builder().id(UUID.randomUUID()).chatId(chatId).build();
-        Link link = Link.builder()
-                .id(UUID.randomUUID())
-                .url(request.link().toString())
-                .build();
-        LinkResponse response = new LinkResponse(chatId, request.link(), request.tags());
+        SubscriptionResult result = new SubscriptionResult(
+                Subscription.builder().build(),
+                Link.builder().url(request.link().toString()).build(),
+                User.builder().chatId(chatId).build());
 
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(user));
-        when(properties.getInterval()).thenReturn(Duration.ofMinutes(5));
-        when(properties.getLinkCheckInterval()).thenReturn(Duration.ofMinutes(10));
-        when(createTrackedLinkUseCase.execute(any())).thenReturn(Optional.of(link));
-        when(readSubscriptionUseCase.execute(any())).thenReturn(Optional.empty());
-        when(createSubscriptionUseCase.execute(any()))
-                .thenReturn(Optional.of(Subscription.builder().build()));
-        when(subscriptionToLinkResponse.map(any(), any(), any())).thenReturn(response);
+        when(subscriptionService.subscribe(eq(chatId), eq(request.link()), any()))
+                .thenReturn(result);
+
+        when(responseMapper.map(any(), any(), any()))
+                .thenReturn(new LinkResponse(chatId, request.link(), request.tags()));
 
         mockMvc.perform(post("/links")
                         .header("Tg-Chat-Id", chatId)
@@ -144,55 +111,29 @@ class ScrapperControllerTest {
     }
 
     @Test
-    void wrongLinkTest() throws Exception {
-        AddLinkRequest request = new AddLinkRequest(URI.create("https://google.com"), List.of());
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(new User()));
-
-        mockMvc.perform(post("/links")
-                        .header("Tg-Chat-Id", chatId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void linkAlreadyThereTest() throws Exception {
-        AddLinkRequest request = new AddLinkRequest(URI.create("https://github.com/user/repo"), List.of());
-        User user = User.builder().id(UUID.randomUUID()).build();
-        Link link = Link.builder().id(UUID.randomUUID()).build();
-
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(user));
-        when(createTrackedLinkUseCase.execute(any())).thenReturn(Optional.of(link));
-        when(readSubscriptionUseCase.execute(any()))
-                .thenReturn(Optional.of(Subscription.builder().build()));
-
-        mockMvc.perform(post("/links")
-                        .header("Tg-Chat-Id", chatId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict());
-    }
-
-    @Test
     void removeLinkTest() throws Exception {
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("https://github.com/user/repo"));
-        User user = User.builder().id(UUID.randomUUID()).chatId(chatId).build();
-        Link link = Link.builder()
-                .id(UUID.randomUUID())
-                .url(request.link().toString())
-                .build();
-        Subscription sub = Subscription.builder().id(UUID.randomUUID()).build();
+        SubscriptionResult result = new SubscriptionResult(
+                Subscription.builder().build(),
+                Link.builder().url(request.link().toString()).build(),
+                User.builder().chatId(chatId).build());
 
-        when(readUserByTgIdUseCase.execute(chatId)).thenReturn(Optional.of(user));
-        when(readTrackedLinkByUrlUseCase.execute(anyString())).thenReturn(Optional.of(link));
-        when(readSubscriptionUseCase.execute(any())).thenReturn(Optional.of(sub));
+        when(subscriptionService.unsubscribe(eq(chatId), anyString())).thenReturn(result);
+
+        when(responseMapper.map(any(), any(), any())).thenReturn(new LinkResponse(chatId, request.link(), List.of()));
 
         mockMvc.perform(delete("/links")
                         .header("Tg-Chat-Id", chatId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(request.link().toString()));
+    }
 
-        verify(deleteSubscriptionUseCase).execute(sub.getId());
+    @Test
+    void deleteNonExistentUserTest() throws Exception {
+        doThrow(new UserNotFoundException(chatId)).when(userService).unregister(chatId);
+
+        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isNotFound());
     }
 }

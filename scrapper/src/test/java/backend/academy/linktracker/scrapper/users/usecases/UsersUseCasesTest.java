@@ -40,7 +40,7 @@ class UsersUseCasesTest {
 
     @Test
     void CreateUserUseCaseTest() {
-        CreateUserDto dto = CreateUserDto.builder().chatId(100L).build();
+        CreateUserDto dto = new CreateUserDto(100L);
         User expected = User.builder().chatId(100L).build();
         when(usersRepository.save(dto)).thenReturn(Optional.of(expected));
 
