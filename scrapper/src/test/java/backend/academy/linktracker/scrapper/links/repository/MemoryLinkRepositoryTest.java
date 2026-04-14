@@ -97,7 +97,7 @@ class MemoryLinkRepositoryTest {
                 repository.save(createDtoWithNextCheck(now.minusSeconds(10))).orElseThrow();
         Link link3 = repository.save(createDtoWithNextCheck(now.plusMinutes(5))).orElseThrow();
 
-        List<Link> ready = repository.readReadyToCheck(now);
+        List<Link> ready = repository.readReadyToCheck(now, 100);
 
         assertThat(ready).hasSize(2).containsExactlyInAnyOrder(link1, link2);
     }

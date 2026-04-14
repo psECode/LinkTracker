@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface LinkJpaRepositoryInterface extends JpaRepository<LinkJpaEntity, UUID> {
@@ -13,4 +14,6 @@ interface LinkJpaRepositoryInterface extends JpaRepository<LinkJpaEntity, UUID> 
     List<LinkJpaEntity> findAllByNextCheckAtBefore(OffsetDateTime time);
 
     List<LinkJpaEntity> findAllByIdIn(Set<UUID> ids);
+
+    List<LinkJpaEntity> findAllByNextCheckAtBeforeOrderByNextCheckAtAsc(OffsetDateTime now, Pageable pageable);
 }

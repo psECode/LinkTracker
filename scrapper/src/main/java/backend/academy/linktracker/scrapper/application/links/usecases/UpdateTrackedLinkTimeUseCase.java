@@ -1,31 +1,33 @@
 package backend.academy.linktracker.scrapper.application.links.usecases;
 
-import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
+import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import java.time.OffsetDateTime;
-import java.util.UUID;
+import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
+import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateTimeDTO;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class UpdateTrackedLinkTimeUseCase {
-    private final ReadTrackedLinkByUuidUseCase readTrackedLinkByUuidUseCase;
-    private final CreateTrackedLinkUseCase createTrackedLinkUseCase;
+    private final ReadTrackedLinkService readTrackedLinkService;
+    private final LinkRepository linkRepository;
 
-    public void execute(UUID linkId) {
-        readTrackedLinkByUuidUseCase.execute(linkId).ifPresent(link -> {
+    @Transactional
+    public void execute(UpdateTimeDTO dto) {
+        readTrackedLinkService.readByUUID(dto.linkId()).ifPresent(link -> {
             OffsetDateTime nextCheck = OffsetDateTime.now().plus(link.getCheckInterval());
 
             link.setNextCheckAt(nextCheck);
+            UpdateDateDTO updateDto;
+            if (Boolean.TRUE.equals(dto.updated())) {
+                updateDto = new UpdateDateDTO(link.getId(), OffsetDateTime.now(), nextCheck);
+            } else {
+                updateDto = new UpdateDateDTO(link.getId(), link.getLastUpdated(), nextCheck);
+            }
 
-            CreateTrackedLinkDTO dto = new CreateTrackedLinkDTO(
-                    link.getUrl(),
-                    link.getNextCheckAt(),
-                    link.getType(),
-                    link.getLastUpdated(),
-                    link.getCheckInterval());
-
-            createTrackedLinkUseCase.execute(dto);
+            linkRepository.updateMetadata(updateDto);
         });
     }
 }

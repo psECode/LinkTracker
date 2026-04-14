@@ -3,6 +3,7 @@ package backend.academy.linktracker.scrapper.infrastructure.repository.links.jdb
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
+import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -45,8 +46,14 @@ public class JdbcLinkRepository implements LinkRepository {
     }
 
     @Override
-    public List<Link> readReadyToCheck(OffsetDateTime now) {
-        return jdbc.query("SELECT * FROM links WHERE next_check_at < :n", Map.of("n", now), rowMapper);
+    public List<Link> readReadyToCheck(OffsetDateTime now, int limit) {
+        String sql = "SELECT * FROM links WHERE next_check_at < :n ORDER BY next_check_at ASC LIMIT :limit";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("n", now)
+            .addValue("limit", limit);
+
+        return jdbc.query(sql, params, rowMapper);
     }
 
     @Override
@@ -71,6 +78,12 @@ public class JdbcLinkRepository implements LinkRepository {
                         rowMapper)
                 .stream()
                 .findFirst();
+    }
+
+    @Override
+    public void updateMetadata(UpdateDateDTO dto) {
+        String sql = "UPDATE links SET last_updated = :last, next_check_at = :next WHERE id = :id";
+        jdbc.update(sql, Map.of("last", dto.lastUpdated(), "next", dto.nextCheckAt(), "id", dto.id()));
     }
 
     @Override

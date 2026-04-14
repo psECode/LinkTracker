@@ -2,6 +2,7 @@ package backend.academy.linktracker.scrapper.infrastructure.repository.links.jpa
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
+import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
@@ -11,6 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -31,10 +34,12 @@ public class JpaLinkRepository implements LinkRepository {
     }
 
     @Override
-    public List<Link> readReadyToCheck(OffsetDateTime now) {
-        return jpa.findAllByNextCheckAtBefore(now).stream()
-                .map(mapper::toDomain)
-                .toList();
+    public List<Link> readReadyToCheck(OffsetDateTime now, int limit) {
+        Pageable limitOnly = PageRequest.of(0, limit);
+
+        return jpa.findAllByNextCheckAtBeforeOrderByNextCheckAtAsc(now, limitOnly).stream()
+            .map(mapper::toDomain)
+            .toList();
     }
 
     @Override
@@ -54,6 +59,15 @@ public class JpaLinkRepository implements LinkRepository {
                     dto.nextCheckAt(),
                     dto.checkInterval());
             return Optional.of(mapper.toDomain(jpa.save(entity)));
+        });
+    }
+
+    @Override
+    @Transactional
+    public void updateMetadata(UpdateDateDTO dto) {
+        jpa.findById(dto.id()).ifPresent(entity -> {
+            entity.setLastUpdated(dto.lastUpdated());
+            entity.setNextCheckAt(dto.nextCheckAt());
         });
     }
 
