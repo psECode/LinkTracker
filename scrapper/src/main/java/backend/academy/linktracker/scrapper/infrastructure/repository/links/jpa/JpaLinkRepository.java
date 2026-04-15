@@ -38,8 +38,8 @@ public class JpaLinkRepository implements LinkRepository {
         Pageable limitOnly = PageRequest.of(0, limit);
 
         return jpa.findAllByNextCheckAtBeforeOrderByNextCheckAtAsc(now, limitOnly).stream()
-            .map(mapper::toDomain)
-            .toList();
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

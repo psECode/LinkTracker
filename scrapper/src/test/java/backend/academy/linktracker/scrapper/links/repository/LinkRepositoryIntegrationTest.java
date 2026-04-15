@@ -1,5 +1,8 @@
 package backend.academy.linktracker.scrapper.links.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+
 import backend.academy.linktracker.scrapper.ScrapperApplication;
 import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
@@ -8,22 +11,18 @@ import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkD
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest(classes = ScrapperApplication.class)
 @Import(TestcontainersConfiguration.class)
@@ -60,7 +59,8 @@ public abstract class LinkRepositoryIntegrationTest {
 
     @Test
     void shouldFindById() {
-        Link saved = linkRepository.save(createDto("https://stackoverflow.com/q/1")).get();
+        Link saved =
+                linkRepository.save(createDto("https://stackoverflow.com/q/1")).get();
 
         Optional<Link> found = linkRepository.readById(saved.getId());
 
@@ -87,7 +87,8 @@ public abstract class LinkRepositoryIntegrationTest {
 
     @Test
     void shouldDeleteLink() {
-        Link saved = linkRepository.save(createDto("https://github/user/psecode")).get();
+        Link saved =
+                linkRepository.save(createDto("https://github/user/psecode")).get();
 
         linkRepository.delete(saved.getId());
 
@@ -99,10 +100,10 @@ public abstract class LinkRepositoryIntegrationTest {
         OffsetDateTime now = OffsetDateTime.now();
 
         linkRepository.save(new CreateTrackedLinkDTO(
-            "https://expired.com", now.minusMinutes(5), LinkType.GITHUB, now, Duration.ofMinutes(10)));
+                "https://expired.com", now.minusMinutes(5), LinkType.GITHUB, now, Duration.ofMinutes(10)));
 
         linkRepository.save(new CreateTrackedLinkDTO(
-            "https://fresh.com", now.plusMinutes(5), LinkType.GITHUB, now, Duration.ofMinutes(10)));
+                "https://fresh.com", now.plusMinutes(5), LinkType.GITHUB, now, Duration.ofMinutes(10)));
 
         List<Link> readyLinks = linkRepository.readReadyToCheck(now, 10);
 
@@ -127,11 +128,10 @@ public abstract class LinkRepositoryIntegrationTest {
 
     private CreateTrackedLinkDTO createDto(String url) {
         return new CreateTrackedLinkDTO(
-            url,
-            OffsetDateTime.now().plusMinutes(5),
-            LinkType.GITHUB,
-            OffsetDateTime.now().minusDays(1),
-            Duration.ofMinutes(5)
-        );
+                url,
+                OffsetDateTime.now().plusMinutes(5),
+                LinkType.GITHUB,
+                OffsetDateTime.now().minusDays(1),
+                Duration.ofMinutes(5));
     }
 }

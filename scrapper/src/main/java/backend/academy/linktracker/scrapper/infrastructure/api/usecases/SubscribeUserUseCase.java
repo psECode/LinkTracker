@@ -17,11 +17,11 @@ import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkAlread
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -35,32 +35,28 @@ public class SubscribeUserUseCase {
 
     @Transactional
     public SubscriptionResult execute(Long chatId, URI url, List<String> tags) {
-        User user = readUserService.readByChatId(chatId)
-            .orElseThrow(() -> new UserNotFoundException(chatId));
+        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
 
-        LinkType type = LinkType.of(url.toString())
-            .orElseThrow(() -> new InvalidLinkException("Сервис не поддерживается"));
+        LinkType type =
+                LinkType.of(url.toString()).orElseThrow(() -> new InvalidLinkException("Сервис не поддерживается"));
 
         OffsetDateTime now = OffsetDateTime.now();
 
         CreateTrackedLinkDTO dto = new CreateTrackedLinkDTO(
-            url.toString(),
-            now.plus(properties.getInterval()),
-            type,
-            now,
-            properties.getLinkCheckInterval()
-        );
+                url.toString(), now.plus(properties.getInterval()), type, now, properties.getLinkCheckInterval());
 
-        Link link = createTrackedLinkService.createLink(dto)
-            .orElseThrow(() -> new RuntimeException("Ошибка при обработке ссылки"));
+        Link link = createTrackedLinkService
+                .createLink(dto)
+                .orElseThrow(() -> new RuntimeException("Ошибка при обработке ссылки"));
 
         ReadSubscriptionDTO readDto = new ReadSubscriptionDTO(user.getId(), link.getId());
         if (readSubscriptionService.read(readDto).isPresent()) {
             throw new LinkAlreadyTrackedException("Вы уже подписаны на эту ссылку");
         }
 
-        Subscription sub = createSubscriptionUseCase.execute(new CreateSubscriptionDTO(user.getId(), link.getId(), tags))
-            .orElseThrow(() -> new RuntimeException("Ошибка сохранения подписки"));
+        Subscription sub = createSubscriptionUseCase
+                .execute(new CreateSubscriptionDTO(user.getId(), link.getId(), tags))
+                .orElseThrow(() -> new RuntimeException("Ошибка сохранения подписки"));
 
         return new SubscriptionResult(sub, link, user);
     }

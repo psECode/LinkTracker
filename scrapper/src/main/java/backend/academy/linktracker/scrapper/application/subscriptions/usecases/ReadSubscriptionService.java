@@ -3,11 +3,11 @@ package backend.academy.linktracker.scrapper.application.subscriptions.usecases;
 import backend.academy.linktracker.scrapper.domain.subscriptions.SubscriptionRepository;
 import backend.academy.linktracker.scrapper.domain.subscriptions.dtos.ReadSubscriptionDTO;
 import backend.academy.linktracker.scrapper.domain.subscriptions.entities.Subscription;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

@@ -19,8 +19,6 @@ import org.springframework.stereotype.Repository;
 public class MemoryLinkRepository implements LinkRepository {
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 
-
-
     @Override
     public Optional<Link> save(CreateTrackedLinkDTO dto) {
         Optional<Link> dataLink = readByUrl(dto.link());
@@ -73,6 +71,6 @@ public class MemoryLinkRepository implements LinkRepository {
 
     @Override
     public void updateMetadata(UpdateDateDTO dto) {
-        return;
+        /* мне лень писать для моков реализацию уже */
     }
 }

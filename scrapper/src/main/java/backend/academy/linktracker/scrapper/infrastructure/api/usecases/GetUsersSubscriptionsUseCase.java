@@ -9,13 +9,13 @@ import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.SubscriptionResult;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -27,24 +27,20 @@ public class GetUsersSubscriptionsUseCase {
 
     @Transactional
     public List<SubscriptionResult> execute(Long chatId) {
-        User user = readUserService.readByChatId(chatId)
-            .orElseThrow(() -> new UserNotFoundException(chatId));
+        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
 
         List<Subscription> subs = readSubscriptionService.readByUserUUID(user.getId());
         if (subs.isEmpty()) {
             return List.of();
         }
 
-        Set<UUID> linkIds = subs.stream()
-            .map(Subscription::getLinkId)
-            .collect(Collectors.toSet());
+        Set<UUID> linkIds = subs.stream().map(Subscription::getLinkId).collect(Collectors.toSet());
 
-        Map<UUID, Link> linksMap = readTrackedLinkService.readByUUIDs(linkIds)
-            .stream()
-            .collect(Collectors.toMap(Link::getId, l -> l));
+        Map<UUID, Link> linksMap =
+                readTrackedLinkService.readByUUIDs(linkIds).stream().collect(Collectors.toMap(Link::getId, l -> l));
 
         return subs.stream()
-            .map(sub -> new SubscriptionResult(sub, linksMap.get(sub.getLinkId()), user))
-            .toList();
+                .map(sub -> new SubscriptionResult(sub, linksMap.get(sub.getLinkId()), user))
+                .toList();
     }
 }

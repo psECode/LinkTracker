@@ -20,5 +20,6 @@ public class GithubProperties {
     @NotEmpty
     private String token;
 
-    @NotNull int issuesPerOnce;
+    @NotNull
+    int issuesPerOnce;
 }

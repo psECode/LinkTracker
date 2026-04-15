@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 
 public record GithubCommentResponse(
-    String body,
-    @JsonProperty("created_at") OffsetDateTime createdAt,
-    GithubUser user
-) implements GithubBaseResponse {
+        String body, @JsonProperty("created_at") OffsetDateTime createdAt, GithubUser user)
+        implements GithubBaseResponse {
     @Override
-    public String title() { return "Комментарий"; }
+    public String title() {
+        return "Комментарий";
+    }
 }

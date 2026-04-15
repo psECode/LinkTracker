@@ -49,9 +49,8 @@ public class JdbcLinkRepository implements LinkRepository {
     public List<Link> readReadyToCheck(OffsetDateTime now, int limit) {
         String sql = "SELECT * FROM links WHERE next_check_at < :n ORDER BY next_check_at ASC LIMIT :limit";
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-            .addValue("n", now)
-            .addValue("limit", limit);
+        MapSqlParameterSource params =
+                new MapSqlParameterSource().addValue("n", now).addValue("limit", limit);
 
         return jdbc.query(sql, params, rowMapper);
     }

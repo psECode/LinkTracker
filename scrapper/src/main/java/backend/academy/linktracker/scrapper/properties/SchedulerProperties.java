@@ -20,5 +20,4 @@ public class SchedulerProperties {
 
     @NotNull
     private int batchSize;
-
 }

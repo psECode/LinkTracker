@@ -43,7 +43,7 @@ class MemoryUsersRepositoryTest {
 
         Optional<User> found = repository.readByUUID(uuid);
 
-        assertThat(found.isPresent());
+        assertThat(found).isPresent();
         assertThat(found.get().getChatId()).isEqualTo(111L);
     }
 

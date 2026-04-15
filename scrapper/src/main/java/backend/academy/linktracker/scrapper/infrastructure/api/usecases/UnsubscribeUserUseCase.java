@@ -27,15 +27,13 @@ public class UnsubscribeUserUseCase {
 
     @Transactional
     public SubscriptionResult execute(Long chatId, String url) {
-        User user = readUserService.readByChatId(chatId)
-            .orElseThrow(() -> new UserNotFoundException(chatId));
+        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
 
-        Link link = readTrackedLinkService.readByUrl(url)
-            .orElseThrow(() -> new LinkNotFoundException(url));
+        Link link = readTrackedLinkService.readByUrl(url).orElseThrow(() -> new LinkNotFoundException(url));
 
         var readDto = new ReadSubscriptionDTO(user.getId(), link.getId());
-        Subscription sub = readSubscriptionService.read(readDto)
-            .orElseThrow(() -> new SubscriptionNotFoundException(chatId, url));
+        Subscription sub =
+                readSubscriptionService.read(readDto).orElseThrow(() -> new SubscriptionNotFoundException(chatId, url));
 
         // Вызов атомарного удаления
         deleteSubscriptionUseCase.execute(sub.getId());

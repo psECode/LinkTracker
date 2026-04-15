@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.time.OffsetDateTime;
 
 public record StackOverflowComment(
-    String body,
-    @JsonProperty("creation_date")
-    @JsonDeserialize(using = UnixTimestampDeserializer.class)
-    OffsetDateTime createdAt,
-    StackOverflowUser owner
-) implements StackOverflowBaseResponse {
+        String body,
+
+        @JsonProperty("creation_date") @JsonDeserialize(using = UnixTimestampDeserializer.class)
+        OffsetDateTime createdAt,
+
+        StackOverflowUser owner)
+        implements StackOverflowBaseResponse {
     @Override
-    public String title() { return "Комментарий к вопросу"; }
+    public String title() {
+        return "Комментарий к вопросу";
+    }
 }

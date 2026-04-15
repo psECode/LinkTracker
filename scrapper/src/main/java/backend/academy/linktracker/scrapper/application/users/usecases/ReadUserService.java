@@ -2,10 +2,10 @@ package backend.academy.linktracker.scrapper.application.users.usecases;
 
 import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor

@@ -5,12 +5,12 @@ import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkResponse
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.mappers.SubscriptionToLinkResponse;
-import java.util.List;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.GetUsersSubscriptionsUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.RegisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.SubscribeUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnregisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnsubscribeUserUseCase;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

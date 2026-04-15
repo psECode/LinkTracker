@@ -2,6 +2,4 @@ package backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackov
 
 import java.util.List;
 
-public record StackOverflowResponse<T>(
-    List<T> items
-) {}
+public record StackOverflowResponse<T>(List<T> items) {}

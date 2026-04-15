@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.time.OffsetDateTime;
 
 public record StackOverflowAnswer(
-    String title,
-    String body,
-    @JsonProperty("creation_date")
-    @JsonDeserialize(using = UnixTimestampDeserializer.class)
-    OffsetDateTime createdAt,
-    StackOverflowUser owner
-) implements StackOverflowBaseResponse {}
+        String title,
+        String body,
+
+        @JsonProperty("creation_date") @JsonDeserialize(using = UnixTimestampDeserializer.class)
+        OffsetDateTime createdAt,
+
+        StackOverflowUser owner)
+        implements StackOverflowBaseResponse {}

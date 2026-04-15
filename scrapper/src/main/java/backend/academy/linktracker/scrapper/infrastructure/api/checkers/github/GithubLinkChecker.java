@@ -1,8 +1,12 @@
 package backend.academy.linktracker.scrapper.infrastructure.api.checkers.github;
 
+import backend.academy.linktracker.scrapper.domain.links.LinkType;
+import backend.academy.linktracker.scrapper.domain.links.entities.Link;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkChecker;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubBaseResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
-import backend.academy.linktracker.scrapper.domain.links.LinkType;
+import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -11,10 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-import backend.academy.linktracker.scrapper.domain.links.entities.Link;
-import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkChecker;
-import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
-import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -31,37 +31,35 @@ public class GithubLinkChecker implements LinkChecker {
         String owner = parts[0];
         String repo = parts[1];
 
-        String since = link.getLastUpdated()
-            .atZoneSameInstant(ZoneOffset.UTC)
-            .format(DateTimeFormatter.ISO_INSTANT);
+        String since = link.getLastUpdated().atZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
         var issuesTask = CompletableFuture.supplyAsync(() ->
-            githubClient.getLatestIssues(owner, repo, "all", "created", "desc", properties.getIssuesPerOnce()));
+                githubClient.getLatestIssues(owner, repo, "all", "created", "desc", properties.getIssuesPerOnce()));
 
         var issueCommentsTask = CompletableFuture.supplyAsync(() ->
-            githubClient.getIssueComments(owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
+                githubClient.getIssueComments(owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
 
-        var prCommentsTask = CompletableFuture.supplyAsync(() ->
-            githubClient.getPullRequestComments(owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
+        var prCommentsTask = CompletableFuture.supplyAsync(() -> githubClient.getPullRequestComments(
+                owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
 
         return Stream.of(
-                process(issuesTask.join(), "Issue/PR", link.getLastUpdated()),
-                process(issueCommentsTask.join(), "Комментарий к Issue", link.getLastUpdated()),
-                process(prCommentsTask.join(), "Комментарий к PR", link.getLastUpdated())
-            )
-            .flatMap(List::stream)
-            .sorted(Comparator.comparing(UpdateDescription::date))
-            .toList();
+                        process(issuesTask.join(), "Issue/PR", link.getLastUpdated()),
+                        process(issueCommentsTask.join(), "Комментарий к Issue", link.getLastUpdated()),
+                        process(prCommentsTask.join(), "Комментарий к PR", link.getLastUpdated()))
+                .flatMap(List::stream)
+                .sorted(Comparator.comparing(UpdateDescription::date))
+                .toList();
     }
 
-    private List<UpdateDescription> process(List<? extends GithubBaseResponse> items, String eventType, OffsetDateTime lastUpdated) {
+    private List<UpdateDescription> process(
+            List<? extends GithubBaseResponse> items, String eventType, OffsetDateTime lastUpdated) {
         return items.stream()
-            .filter(i -> i.createdAt().isAfter(lastUpdated))
-            .map(i -> {
-                String text = formatMessage(i.title(), i.user().login(), i.createdAt(), eventType, i.body());
-                return new UpdateDescription(text, i.createdAt());
-            })
-            .toList();
+                .filter(i -> i.createdAt().isAfter(lastUpdated))
+                .map(i -> {
+                    String text = formatMessage(i.title(), i.user().login(), i.createdAt(), eventType, i.body());
+                    return new UpdateDescription(text, i.createdAt());
+                })
+                .toList();
     }
 
     private String formatMessage(String title, String author, OffsetDateTime date, String type, String body) {
@@ -70,10 +68,25 @@ public class GithubLinkChecker implements LinkChecker {
             preview = preview.substring(0, 200) + "...";
         }
 
-        return String.format(
-            "Обновление на GitHub\nРепозиторий: %s\nСобытие: %s\nАвтор: %s\nДата: %s\n\n%s",
-            title, type, author, date, preview
-        );
+        StringBuilder sb = new StringBuilder();
+        sb.append("Обновление на GitHub")
+                .append(System.lineSeparator())
+                .append("Репозиторий: ")
+                .append(title)
+                .append(System.lineSeparator())
+                .append("Событие: ")
+                .append(type)
+                .append(System.lineSeparator())
+                .append("Автор: ")
+                .append(author)
+                .append(System.lineSeparator())
+                .append("Дата: ")
+                .append(date)
+                .append(System.lineSeparator())
+                .append(System.lineSeparator())
+                .append(preview);
+
+        return sb.toString();
     }
 
     @Override

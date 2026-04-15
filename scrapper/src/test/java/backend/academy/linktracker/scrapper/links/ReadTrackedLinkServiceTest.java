@@ -1,19 +1,19 @@
 package backend.academy.linktracker.scrapper.links;
 
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+
 import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
+import java.time.OffsetDateTime;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.time.OffsetDateTime;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ReadTrackedLinkServiceTest {
@@ -51,9 +51,10 @@ class ReadTrackedLinkServiceTest {
 
         readService.readExpiredLinks(limit);
 
-        verify(linkRepository).readReadyToCheck(
-            argThat(time -> time != null && time.isBefore(OffsetDateTime.now().plusSeconds(1))),
-            eq(limit)
-        );
+        verify(linkRepository)
+                .readReadyToCheck(
+                        argThat(time -> time != null
+                                && time.isBefore(OffsetDateTime.now().plusSeconds(1))),
+                        eq(limit));
     }
 }

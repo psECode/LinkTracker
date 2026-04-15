@@ -10,6 +10,7 @@ import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkUpdateReport;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
+import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,8 +48,8 @@ public class LinkUpdateScheduler {
         log.info("Обработка {} ссылок", links.size());
 
         var futures = links.stream()
-            .map(link -> CompletableFuture.runAsync(() -> handleLink(link), executor))
-            .toArray(CompletableFuture[]::new);
+                .map(link -> CompletableFuture.runAsync(() -> handleLink(link), executor))
+                .toArray(CompletableFuture[]::new);
 
         CompletableFuture.allOf(futures).join();
     }
@@ -66,20 +66,17 @@ public class LinkUpdateScheduler {
                 description = "Ошибка при проверке ссылки: " + report.errorMessage();
             } else if (!report.updates().isEmpty()) {
                 description = report.updates().stream()
-                    .map(UpdateDescription::message)
-                    .collect(Collectors.joining("\n\n"));
+                        .map(UpdateDescription::message)
+                        .collect(Collectors.joining("\n\n"));
             }
 
             if (description != null) {
                 botClient.sendUpdate(new LinkUpdate(
-                    link.getId().getMostSignificantBits(),
-                    URI.create(link.getUrl()),
-                    description,
-                    chatIds
-                ));
+                        link.getId().getMostSignificantBits(), URI.create(link.getUrl()), description, chatIds));
             }
 
-            UpdateTimeDTO updateTimeDTO = new UpdateTimeDTO(link.getId(), !report.updates().isEmpty());
+            UpdateTimeDTO updateTimeDTO =
+                    new UpdateTimeDTO(link.getId(), !report.updates().isEmpty());
             updateTrackedLinkTimeUseCase.execute(updateTimeDTO);
 
         } catch (Exception e) {
@@ -89,9 +86,9 @@ public class LinkUpdateScheduler {
 
     private List<Long> getChatIdsForLink(UUID linkId) {
         return readUsersUuidsByLinkIdUseCase.execute(linkId).stream()
-            .map(readUserService::readByUUID)
-            .flatMap(Optional::stream)
-            .map(User::getChatId)
-            .toList();
+                .map(readUserService::readByUUID)
+                .flatMap(Optional::stream)
+                .map(User::getChatId)
+                .toList();
     }
 }

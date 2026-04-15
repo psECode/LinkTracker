@@ -1,10 +1,10 @@
 package backend.academy.linktracker.scrapper.application.links.usecases;
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
-import java.time.OffsetDateTime;
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateTimeDTO;
 import jakarta.transaction.Transactional;
+import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

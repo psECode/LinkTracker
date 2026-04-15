@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 
 public record GithubIssueResponse(
-    String title,
-    String body,
-    @JsonProperty("created_at") OffsetDateTime createdAt,
-    GithubUser user
-) implements GithubBaseResponse {}
+        String title,
+        String body,
+        @JsonProperty("created_at") OffsetDateTime createdAt,
+        GithubUser user) implements GithubBaseResponse {}

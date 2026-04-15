@@ -3,5 +3,4 @@ package backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackov
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record StackOverflowUser(
-    @JsonProperty("display_name") String displayName
-) {}
+        @JsonProperty("display_name") String displayName) {}

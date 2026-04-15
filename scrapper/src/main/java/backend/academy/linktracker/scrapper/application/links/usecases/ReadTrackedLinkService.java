@@ -2,13 +2,13 @@ package backend.academy.linktracker.scrapper.application.links.usecases;
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

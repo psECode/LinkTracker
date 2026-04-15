@@ -9,16 +9,13 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
-    public static final PostgreSQLContainer POSTGRES =
-        new PostgreSQLContainer("postgres:17-alpine")
+    public static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine")
             .withDatabaseName("scrapper")
             .withUsername("postgres")
             .withPassword("postgres");
 
-
-    public static final WireMockServer WIREMOCK_SERVER = new WireMockServer(
-        WireMockConfiguration.wireMockConfig().dynamicPort()
-    );
+    public static final WireMockServer WIREMOCK_SERVER =
+            new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
 
     @Bean
     @ServiceConnection

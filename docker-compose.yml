@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: scrapper_db
     environment:
       POSTGRES_DB: scrapper
@@ -48,9 +48,6 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/scrapper
       - APP_BOT_URL=http://bot:8080
-      - GITHUB_TOKEN
-      - STACKOVERFLOW_KEY
-      - STACKOVERFLOW_ACCESS_KEY
       - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       migrations:
@@ -66,7 +63,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - TELEGRAM_TOKEN
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATA_REDIS_HOST=redis
       - APP_SCRAPPER_URL=http://scrapper:8081

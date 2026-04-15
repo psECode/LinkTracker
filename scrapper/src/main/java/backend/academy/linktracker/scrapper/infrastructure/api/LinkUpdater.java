@@ -4,10 +4,10 @@ import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkChecker;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkUpdateReport;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor

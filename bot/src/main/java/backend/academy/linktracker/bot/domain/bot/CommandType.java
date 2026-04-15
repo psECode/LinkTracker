@@ -1,11 +1,10 @@
 package backend.academy.linktracker.bot.domain.bot;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum CommandType {
     START("^/start$"),
     HELP("^/help$"),
@@ -14,13 +13,24 @@ public enum CommandType {
     UNTRACK("^/untrack(\\s+.*)?$"),
     UNKNOWN(null);
 
-    private final String regex;
+    private final Pattern pattern;
+
+    CommandType(String regex) {
+        if (regex != null) {
+            this.pattern = Pattern.compile(regex);
+        } else {
+            this.pattern = null;
+        }
+    }
 
     public static CommandType fromText(String text) {
         if (text == null) return UNKNOWN;
 
+        String trimmedText = text.trim();
+
         return Arrays.stream(values())
-                .filter(type -> type.regex != null && text.trim().matches(type.regex))
+                .filter(type -> type.pattern != null
+                        && type.pattern.matcher(trimmedText).matches())
                 .findFirst()
                 .orElse(UNKNOWN);
     }

@@ -4,7 +4,10 @@ import java.time.OffsetDateTime;
 
 public interface GithubBaseResponse {
     String title();
+
     String body();
+
     OffsetDateTime createdAt();
+
     GithubUser user();
 }

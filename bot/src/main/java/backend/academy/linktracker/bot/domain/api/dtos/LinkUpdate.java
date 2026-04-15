@@ -1,6 +1,12 @@
 package backend.academy.linktracker.bot.domain.api.dtos;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.List;
 
-public record LinkUpdate(Long id, URI url, String description, List<Long> tgChatIds) {}
+public record LinkUpdate(
+        @NotNull Long id,
+        @NotNull URI url,
+        String description,
+        @NotEmpty List<Long> tgChatIds) {}

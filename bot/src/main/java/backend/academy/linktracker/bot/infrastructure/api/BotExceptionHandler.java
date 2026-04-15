@@ -1,53 +1,31 @@
 package backend.academy.linktracker.bot.infrastructure.api;
 
 import backend.academy.linktracker.bot.infrastructure.api.dtos.ApiErrorResponse;
-import backend.academy.linktracker.bot.infrastructure.api.errors.InvalidLinkException;
-import backend.academy.linktracker.bot.infrastructure.api.errors.LinkAlreadyTrackedException;
-import backend.academy.linktracker.bot.infrastructure.api.errors.LinkNotFoundException;
-import backend.academy.linktracker.bot.infrastructure.api.errors.SubscriptionNotFoundException;
-import backend.academy.linktracker.bot.infrastructure.api.errors.UserNotFoundException;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class BotExceptionHandler {
 
-    @ExceptionHandler({UserNotFoundException.class, LinkNotFoundException.class, SubscriptionNotFoundException.class})
-    public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
-        return buildResponse(ex, HttpStatus.NOT_FOUND, "Запрашиваемый ресурс не найден");
-    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse handleValidationException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
 
-    @ExceptionHandler(LinkAlreadyTrackedException.class)
-    public ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException ex) {
-        return buildResponse(ex, HttpStatus.CONFLICT, "Ресурс уже существует");
-    }
-
-    @ExceptionHandler({IllegalArgumentException.class, InvalidLinkException.class})
-    public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
-        return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса");
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleInternalError(Exception ex) {
-        return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера");
-    }
-
-    private ResponseEntity<ApiErrorResponse> buildResponse(Exception ex, HttpStatus status, String description) {
-        List<String> stacktrace = Arrays.stream(ex.getStackTrace())
-                .map(StackTraceElement::toString)
-                .toList();
-
-        ApiErrorResponse errorDTO = new ApiErrorResponse(
-                description,
-                String.valueOf(status.value()),
-                ex.getClass().getSimpleName(),
-                ex.getMessage(),
-                stacktrace);
-
-        return new ResponseEntity<>(errorDTO, status);
+        return new ApiErrorResponse(
+                "Некорректные параметры запроса",
+                "400",
+                e.getClass().getSimpleName(),
+                errorMessage,
+                Arrays.stream(e.getStackTrace())
+                        .map(StackTraceElement::toString)
+                        .toList());
     }
 }
