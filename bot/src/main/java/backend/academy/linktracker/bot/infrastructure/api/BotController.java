@@ -2,6 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.api;
 
 import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUseCase;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,8 @@ public class BotController {
     private final ProcessUpdateUseCase processUpdateUseCase;
 
     @PostMapping
-    public ResponseEntity<Void> sendUpdate(@RequestBody LinkUpdate update) {
-        log.info("Прислали какое то обновление: {}", update.url());
-
-        if (update.tgChatIds() == null || update.tgChatIds().isEmpty()) {
-            log.warn("Какую то чушь прислали");
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Void> sendUpdate(@Valid @RequestBody LinkUpdate update) {
+        log.info("Прислали обновление: {}", update.url());
 
         processUpdateUseCase.execute(update);
 

@@ -5,6 +5,11 @@ import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkResponse
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.mappers.SubscriptionToLinkResponse;
+import backend.academy.linktracker.scrapper.infrastructure.api.usecases.GetUsersSubscriptionsUseCase;
+import backend.academy.linktracker.scrapper.infrastructure.api.usecases.RegisterUserUseCase;
+import backend.academy.linktracker.scrapper.infrastructure.api.usecases.SubscribeUserUseCase;
+import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnregisterUserUseCase;
+import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnsubscribeUserUseCase;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,25 +29,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ScrapperController {
 
-    private final LinkSubscriptionService subscriptionService;
-    private final UserService registrationService;
+    private final GetUsersSubscriptionsUseCase getUsersSubscriptionsUseCase;
+    private final SubscribeUserUseCase subscribeUserUseCase;
+    private final UnsubscribeUserUseCase unsubscribeUserUseCase;
+
+    private final RegisterUserUseCase registerUserUseCase;
+    private final UnregisterUserUseCase unregisterUserUseCase;
     private final SubscriptionToLinkResponse responseMapper;
 
     @PostMapping("/tg-chat/{id}")
     public ResponseEntity<Void> register(@PathVariable Long id) {
-        registrationService.register(id);
+        registerUserUseCase.execute(id);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/tg-chat/{id}")
     public ResponseEntity<Void> unregister(@PathVariable Long id) {
-        registrationService.unregister(id);
+        unregisterUserUseCase.execute(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/links")
     public ResponseEntity<ListLinksResponse> getLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
-        List<SubscriptionResult> results = subscriptionService.getAllSubscriptions(chatId);
+        List<SubscriptionResult> results = getUsersSubscriptionsUseCase.execute(chatId);
 
         List<LinkResponse> responses = results.stream()
                 .map(r -> responseMapper.map(r.subscription(), r.link(), r.user()))
@@ -55,7 +64,7 @@ public class ScrapperController {
     public ResponseEntity<LinkResponse> addLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
 
-        SubscriptionResult res = subscriptionService.subscribe(chatId, request.link(), request.tags());
+        SubscriptionResult res = subscribeUserUseCase.execute(chatId, request.link(), request.tags());
         return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
     }
 
@@ -64,7 +73,7 @@ public class ScrapperController {
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest request) {
 
         SubscriptionResult res =
-                subscriptionService.unsubscribe(chatId, request.link().toString());
+                unsubscribeUserUseCase.execute(chatId, request.link().toString());
         return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
     }
 }
