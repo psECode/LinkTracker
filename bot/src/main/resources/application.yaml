@@ -12,6 +12,17 @@ spring:
       host: localhost
       port: 6379
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: "bot-group"
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: "backend.academy.linktracker.bot.infrastructure.api.dtos.LinkUpdate"
+
 app:
   telegram:
     url: https://api.telegram.org/bot
@@ -21,3 +32,6 @@ app:
   scrapper:
     url: http://localhost:8081
   access-type: redis
+  kafka:
+    topic-name: "link_updates"
+    retry-attempts: 3

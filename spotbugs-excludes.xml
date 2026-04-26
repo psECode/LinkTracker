@@ -22,6 +22,12 @@
         </Or>
     </Match>
 
+    <!--autogen-->
+    <Match>
+        <Package name="com.example.notification" />
+        <Bug pattern="MS_EXPOSE_REP" />
+    </Match>
+
     <!--
         see: https://spotbugs.readthedocs.io/en/stable/
      -->

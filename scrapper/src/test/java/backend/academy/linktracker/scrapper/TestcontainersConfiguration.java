@@ -1,21 +1,33 @@
 package backend.academy.linktracker.scrapper;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
+
     public static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine")
             .withDatabaseName("scrapper")
             .withUsername("postgres")
             .withPassword("postgres");
 
-    public static final WireMockServer WIREMOCK_SERVER =
-            new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
+    public static final KafkaContainer KAFKA = new KafkaContainer("apache/kafka:3.7.0");
+
+    static {
+        POSTGRES.start();
+        KAFKA.start();
+
+        System.setProperty("spring.kafka.bootstrap-servers", KAFKA.getBootstrapServers());
+        String mockRegistryUrl = "mock://http://localhost:8081";
+        System.setProperty("spring.kafka.properties.schema.registry.url", mockRegistryUrl);
+        System.setProperty("schema.registry.url", mockRegistryUrl);
+
+        System.setProperty("app.use-queue", "true");
+        System.setProperty("app.kafka.topic-name", "link_updates");
+    }
 
     @Bean
     @ServiceConnection
@@ -23,11 +35,9 @@ public class TestcontainersConfiguration {
         return POSTGRES;
     }
 
-    static {
-        WIREMOCK_SERVER.start();
-        POSTGRES.start();
-
-        System.setProperty("app.github.url", "http://localhost:" + WIREMOCK_SERVER.port());
-        System.setProperty("app.stackoverflow.url", "http://localhost:" + WIREMOCK_SERVER.port());
+    @Bean
+    @ServiceConnection
+    public KafkaContainer kafkaContainer() {
+        return KAFKA;
     }
 }

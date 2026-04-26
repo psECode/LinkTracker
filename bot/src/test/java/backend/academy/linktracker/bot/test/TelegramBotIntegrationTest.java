@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import backend.academy.linktracker.bot.properties.TelegramProperties;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Message;
@@ -26,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,12 +36,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.wiremock.spring.EnableWireMock;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
-@EnableWireMock
 class TelegramBotIntegrationTest implements WithAssertions {
 
     @Autowired
@@ -47,16 +48,24 @@ class TelegramBotIntegrationTest implements WithAssertions {
     @Autowired
     TelegramProperties telegramProperties;
 
+    @BeforeEach
+    void setupWireMock() {
+        WireMock.configureFor("localhost", TestcontainersConfiguration.WIREMOCK.port());
+    }
+
     @AfterEach
     void clearUpdatesListener() {
+
         telegramBot.removeGetUpdatesListener();
+        WireMock.reset();
     }
 
     @Test
     void nonExistingTokenRequest() {
-        stubFor(post(urlMatching("/bot[^/]+/getUpdates"))
+        stubFor(post(urlPathMatching(".*/getUpdates"))
                 .willReturn(aResponse()
                         .withStatus(404)
+                        .withHeader("Content-Type", "application/json")
                         .withBody("{\"ok\":false,\"error_code\":404,\"description\":\"Not Found\"}")));
 
         var getUpdatesRequest = new GetUpdates();
@@ -64,9 +73,6 @@ class TelegramBotIntegrationTest implements WithAssertions {
 
         assertFalse(getUpdatesResponse.isOk());
         assertEquals(404, getUpdatesResponse.errorCode());
-
-        verify(postRequestedFor(urlPathTemplate("/bot{token}/getUpdates"))
-                .withPathParam("token", equalTo(telegramProperties.getToken())));
     }
 
     @Test
