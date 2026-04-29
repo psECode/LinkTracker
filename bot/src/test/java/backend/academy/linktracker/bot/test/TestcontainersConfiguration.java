@@ -14,7 +14,10 @@ public class TestcontainersConfiguration {
 
     public static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
     public static final RedisContainer REDIS = new RedisContainer(DockerImageName.parse("redis:7-alpine"));
-    public static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"));
+    public static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"))
+            .withEnv("KAFKA_HEAP_OPTS", "-Xms256M -Xmx256M")
+            .withEnv("KAFKA_LOG_RETENTION_MS", "60000")
+            .withEnv("KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS", "5000");
     public static final WireMockServer WIREMOCK =
             new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
 
