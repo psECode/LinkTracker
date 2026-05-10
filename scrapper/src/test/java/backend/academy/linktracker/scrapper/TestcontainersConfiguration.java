@@ -23,6 +23,10 @@ public class TestcontainersConfiguration {
         POSTGRES.start();
         KAFKA.start();
 
+        System.setProperty("spring.datasource.url", POSTGRES.getJdbcUrl());
+        System.setProperty("spring.datasource.username", POSTGRES.getUsername());
+        System.setProperty("spring.datasource.password", POSTGRES.getPassword());
+
         System.setProperty("spring.kafka.bootstrap-servers", KAFKA.getBootstrapServers());
         String mockRegistryUrl = "mock://http://localhost:8081";
         System.setProperty("spring.kafka.properties.schema.registry.url", mockRegistryUrl);

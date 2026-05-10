@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.bot.commands.ListCommand;
 import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkResponse;
@@ -23,7 +24,7 @@ import org.springframework.context.MessageSource;
 class ListCommandTest {
 
     @Mock
-    private ScrapperClient scrapperClient;
+    private ScrapperServiceInterface scrapperClient;
 
     @Mock
     private MessageSource messageSource;
