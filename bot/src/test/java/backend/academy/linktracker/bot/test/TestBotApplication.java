@@ -1,5 +1,6 @@
-package backend.academy.linktracker.bot;
+package backend.academy.linktracker.bot.test;
 
+import backend.academy.linktracker.bot.BotApplication;
 import org.springframework.boot.SpringApplication;
 
 public class TestBotApplication {
