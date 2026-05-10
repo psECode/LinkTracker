@@ -1,7 +1,7 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.LinkListFormattingUtil;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ListCommand implements CommandInterface {
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
     private final MessageSource messageSource;
 
     @Override

@@ -7,6 +7,8 @@ spring:
   messages:
     encoding: UTF-8
     fallback-to-system-locale: false
+  cache:
+    type: redis
   data:
     redis:
       host: localhost
@@ -35,3 +37,6 @@ app:
   kafka:
     topic-name: "link_updates"
     retry-attempts: 3
+  cache:
+    list-links-ttl: 10m
+    context-ttl: 30m
