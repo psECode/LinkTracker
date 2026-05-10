@@ -14,7 +14,6 @@ import backend.academy.linktracker.bot.application.context.track.TrackContextHan
 import backend.academy.linktracker.bot.application.context.track.usecases.DeleteTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.ReadTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
 import backend.academy.linktracker.bot.domain.context.track.TrackContext;

@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "jdbc")
+@Profile("jdbc")
 public class JdbcLinkRepository implements LinkRepository {
     private final NamedParameterJdbcTemplate jdbc;
     private final RowMapper<Link> rowMapper = (rs, n) -> Link.builder()

@@ -1,8 +1,13 @@
+app:
+  access-type: jpa
+  kafka:
+    topic-name: "link_updates"
+
 spring:
-  liquibase:
-    enabled: true
-    change-log: file:migrations/changelog-master.xml
+  main:
+    allow-bean-definition-overriding: true
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: true
+      ddl-auto: update
+  liquibase:
+    enabled: false
