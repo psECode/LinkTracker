@@ -39,26 +39,24 @@ class CacheTest {
 
     @Test
     void shouldReturnCachedValueEvenWhenClientChanges() {
-        // Given
+        // g
         Long chatId = 123L;
         ListLinksResponse firstResponse = new ListLinksResponse(List.of(), 1);
-        ListLinksResponse secondResponse = new ListLinksResponse(List.of(), 999); // "Фейковый" новый ответ
+        ListLinksResponse secondResponse = new ListLinksResponse(List.of(), 999);
 
-        // Настраиваем мок на первый ответ
         when(scrapperClient.getAllLinks(chatId)).thenReturn(firstResponse);
 
-        // When
+        // w
         ListLinksResponse result1 = cachedService.getAllLinks(chatId);
 
-        // СРАЗУ меняем поведение мока. Если бы кэша не было, следующий вызов вернул бы 999
         when(scrapperClient.getAllLinks(chatId)).thenReturn(secondResponse);
 
         ListLinksResponse result2 = cachedService.getAllLinks(chatId);
 
-        // Then
+        // t
         assertEquals(1, result1.size());
-        assertEquals(1, result2.size()); // Ожидаем 1 (из кэша), а не 999
-        assertEquals(result1, result2); // Они должны быть идентичны
+        assertEquals(1, result2.size());
+        assertEquals(result1, result2);
     }
 
     @Test
