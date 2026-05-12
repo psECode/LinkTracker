@@ -1,8 +1,8 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.CommandType;
@@ -25,7 +25,7 @@ public class TrackCommand implements CommandInterface {
     private final SetActiveContextUseCase setActiveContext;
     private final SaveTrackContextUseCase saveTrackContext;
     private final MessageSource messageSource;
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
 
     @Override
     public String execute(Long chatId, String text) {

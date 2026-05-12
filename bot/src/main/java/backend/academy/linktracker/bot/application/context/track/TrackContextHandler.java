@@ -1,9 +1,9 @@
 package backend.academy.linktracker.bot.application.context.track;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.track.usecases.DeleteTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.ReadTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.context.ContextHandler;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
@@ -26,7 +26,7 @@ public class TrackContextHandler implements ContextHandler {
     private final ReadTrackContextUseCase readTrackUseCase;
     private final SaveTrackContextUseCase saveTrackUseCase;
     private final DeleteTrackContextUseCase deleteTrackUseCase;
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
 
     @Override
     public ContextType getSupportedType() {

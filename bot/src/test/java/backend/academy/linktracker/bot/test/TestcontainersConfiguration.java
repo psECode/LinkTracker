@@ -2,9 +2,10 @@ package backend.academy.linktracker.bot.test;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -13,7 +14,8 @@ import org.testcontainers.utility.DockerImageName;
 public class TestcontainersConfiguration {
 
     public static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
-    public static final RedisContainer REDIS = new RedisContainer(DockerImageName.parse("redis:7-alpine"));
+    public static final GenericContainer<?> REDIS =
+            new GenericContainer<>(DockerImageName.parse("valkey/valkey:8.0-alpine")).withExposedPorts(6379);
     public static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"))
             .withEnv("KAFKA_HEAP_OPTS", "-Xms256M -Xmx256M")
             .withEnv("KAFKA_LOG_RETENTION_MS", "60000")
@@ -43,7 +45,8 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
-    public RedisContainer redisContainer() {
+    @ServiceConnection(name = "redis")
+    public GenericContainer<?> redisContainer() {
         return REDIS;
     }
 

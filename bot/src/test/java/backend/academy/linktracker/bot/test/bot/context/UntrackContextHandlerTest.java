@@ -10,9 +10,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.untrack.UntrackContextHandler;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.DeleteUntrackContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import tools.jackson.databind.ObjectMapper;
 class UntrackContextHandlerTest {
 
     @Mock
-    private ScrapperClient scrapperClient;
+    private ScrapperServiceInterface scrapperClient;
 
     @Mock
     private DeleteUntrackContextUseCase deleteUntrackContextUseCase;

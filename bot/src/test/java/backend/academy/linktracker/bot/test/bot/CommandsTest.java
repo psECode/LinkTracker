@@ -9,6 +9,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.bot.commands.HelpCommand;
 import backend.academy.linktracker.bot.application.bot.commands.StartCommand;
 import backend.academy.linktracker.bot.application.bot.commands.TrackCommand;
@@ -17,7 +18,6 @@ import backend.academy.linktracker.bot.application.bot.commands.UntrackCommand;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.SaveUntrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
@@ -49,7 +49,7 @@ class CommandsTest {
     private SaveTrackContextUseCase saveTrackContext;
 
     @Mock
-    private ScrapperClient scrapperClient;
+    private ScrapperServiceInterface scrapperClient;
 
     @Mock
     private SaveUntrackContextUseCase saveUntrackContext;

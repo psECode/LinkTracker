@@ -18,6 +18,7 @@ import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
+import com.example.notification.LinkUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.net.URI;
@@ -28,8 +29,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(classes = ScrapperApplication.class)
@@ -37,6 +40,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @Transactional
 public abstract class SubscriptionIntegrationTest {
+
+    @MockitoBean
+    private KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
 
     @Autowired
     protected MockMvc mockMvc;

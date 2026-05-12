@@ -1,13 +1,43 @@
 package backend.academy.linktracker.bot.configuration;
 
+import backend.academy.linktracker.bot.properties.CacheProperties;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.protocol.ProtocolVersion;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.data.redis.autoconfigure.LettuceClientConfigurationBuilderCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
+@EnableCaching
+@RequiredArgsConstructor
 public class RedisConfiguration {
+
+    @Bean
+    public LettuceClientConfigurationBuilderCustomizer lettuceClientCustomizer() {
+        return clientConfigurationBuilder -> clientConfigurationBuilder.clientOptions(
+                ClientOptions.builder().protocolVersion(ProtocolVersion.RESP3).build());
+    }
+
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, CacheProperties properties) {
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(properties.getListLinksTtl())
+                .disableCachingNullValues()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.string()))
+                .serializeValuesWith(
+                        RedisSerializationContext.SerializationPair.fromSerializer(RedisSerializer.json()));
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(config)
+                .build();
+    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -15,9 +45,10 @@ public class RedisConfiguration {
         template.setConnectionFactory(connectionFactory);
 
         var jsonSerializer = RedisSerializer.json();
+        var stringSerializer = RedisSerializer.string();
 
-        template.setKeySerializer(RedisSerializer.string());
-        template.setHashKeySerializer(RedisSerializer.string());
+        template.setKeySerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
 
         template.setValueSerializer(jsonSerializer);
         template.setHashValueSerializer(jsonSerializer);
