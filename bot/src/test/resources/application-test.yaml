@@ -4,3 +4,20 @@ app:
     token: test-token
     update-listener-sleep: 1s
     debug: true
+
+resilience4j:
+  ratelimiter:
+    instances:
+      botApiLimit:
+        limitForPeriod: 2
+        limitRefreshPeriod: 10s
+        timeoutDuration: 0
+  circuitbreaker:
+    instances:
+      telegramCB:
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        recordExceptions:
+          - java.lang.RuntimeException

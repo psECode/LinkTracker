@@ -34,25 +34,27 @@ public class TelegramConfiguration {
     @Profile("!test")
     public CommandLineRunner menuInitializer(TelegramBot bot, List<CommandInterface> commands) {
         return args -> {
-            log.info("Настройка меню команд Telegram...");
+            try {
+                log.info("Настройка меню команд Telegram...");
 
-            BotCommand[] botCommands = commands.stream()
-                    .filter(cmd -> cmd.getMenuName() != null)
-                    .map(cmd -> new BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
-                    .toArray(BotCommand[]::new);
+                BotCommand[] botCommands = commands.stream()
+                        .filter(cmd -> cmd.getMenuName() != null)
+                        .map(cmd -> new BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
+                        .toArray(BotCommand[]::new);
 
-            if (botCommands.length == 0) {
-                log.warn("Список команд для меню пуст");
-                return;
-            }
-
-            SetMyCommands request = new SetMyCommands(botCommands);
-            BaseResponse response = bot.execute(request);
-
-            if (response.isOk()) {
-                log.info("Меню команд успешно обновлено (зарегистрировано {} команд)", botCommands.length);
-            } else {
-                log.error("Ошибка обновления меню: {}", response.description());
+                if (botCommands.length > 0) {
+                    SetMyCommands request = new SetMyCommands(botCommands);
+                    BaseResponse response = bot.execute(request);
+                    if (response.isOk()) {
+                        log.info("Меню команд успешно обновлено");
+                    } else {
+                        log.error("Ошибка обновления меню: {}", response.description());
+                    }
+                }
+            } catch (Exception e) {
+                log.error(
+                        "Бот запущен без доступа к Telegram API. Он начнет работу, когда появится связь. Ошибка: {}",
+                        e.getMessage());
             }
         };
     }

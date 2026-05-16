@@ -3,6 +3,7 @@ package backend.academy.linktracker.scrapper.configuration;
 import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackoverflow.entities.StackOverflowClient;
+import backend.academy.linktracker.scrapper.properties.BotProperties;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import backend.academy.linktracker.scrapper.properties.StackoverflowProperties;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
@@ -22,12 +24,26 @@ public class ClientConfiguration {
 
     private final GithubProperties githubProperties;
     private final StackoverflowProperties stackoverflowProperties;
+    private final BotProperties botProperties;
 
     @Bean
-    public BotClient botClient(@Value("${app.bot.url}") String baseUrl) {
-        RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public BotClient botClient() {
+        java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+                .version(java.net.http.HttpClient.Version.HTTP_1_1)
+                .connectTimeout(botProperties.getTimeout())
+                .build();
 
-        return createClient(BotClient.class, restClient);
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(botProperties.getTimeout());
+
+        RestClient restClient = RestClient.builder()
+                .baseUrl(botProperties.getUrl())
+                .requestFactory(factory)
+                .build();
+
+        return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
+                .build()
+                .createClient(BotClient.class);
     }
 
     @Bean

@@ -22,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Import(TestcontainersConfiguration.class)
 @Slf4j
 @ActiveProfiles("test")
-class BotKafkaListenerTest {
+class KafkaListenerTest {
 
     @MockitoBean
     private TelegramBot telegramBot;

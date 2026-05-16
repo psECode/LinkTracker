@@ -27,20 +27,6 @@ services:
       timeout: 3s
       retries: 5
 
-  migrations:
-    image: liquibase/liquibase:4.25
-    volumes:
-      - ./scrapper/migrations:/liquibase/changelog
-    command: >
-      --changelog-file=changelog-master.xml
-      --url=jdbc:postgresql://db:5432/scrapper
-      --username=postgres
-      --password=postgres
-      update
-    depends_on:
-      db:
-        condition: service_healthy
-
   kafka:
     image: apache/kafka:3.7.0
     container_name: kafka
@@ -91,8 +77,6 @@ services:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL=http://schema-registry:8081
     depends_on:
-      migrations:
-        condition: service_completed_successfully
       kafka:
         condition: service_healthy
 

@@ -1,6 +1,7 @@
 package backend.academy.linktracker.bot.infrastructure.api;
 
 import backend.academy.linktracker.bot.infrastructure.api.dtos.ApiErrorResponse;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,19 @@ public class BotExceptionHandler {
                 "400",
                 e.getClass().getSimpleName(),
                 errorMessage,
+                Arrays.stream(e.getStackTrace())
+                        .map(StackTraceElement::toString)
+                        .toList());
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ApiErrorResponse handleRateLimitException(RequestNotPermitted e) {
+        return new ApiErrorResponse(
+                "Превышен лимит запросов. Попробуйте позже.",
+                "429",
+                "RateLimitExceededException",
+                e.getMessage(),
                 Arrays.stream(e.getStackTrace())
                         .map(StackTraceElement::toString)
                         .toList());
