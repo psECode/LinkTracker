@@ -23,7 +23,7 @@ cache:
 build:
   stage: build
   script:
-    - ./mvnw package -s settings.xml -B -ntp -DskipTests=true -Djacoco.skip=true -Denforcer.skip=true
+    - ./mvnw package -s settings.xml -DskipTests=true -Djacoco.skip=true -Denforcer.skip=true
   tags:
     - dind
 
