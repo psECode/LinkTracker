@@ -1,10 +1,18 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                      https://maven.apache.org/xsd/settings-1.0.0.xsd">
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <mirrors>
+        <mirror>
+            <id>internal-central</id>
+            <mirrorOf>external:*,!confluent</mirrorOf>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </mirror>
+    </mirrors>
+
     <profiles>
         <profile>
-            <id>confluent-filter</id>
+            <id>standard-repos</id>
             <repositories>
                 <repository>
                     <id>confluent</id>
@@ -18,9 +26,20 @@
                     </snapshots>
                 </repository>
             </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>confluent</id>
+                    <url>https://packages.confluent.io/maven/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                </pluginRepository>
+            </pluginRepositories>
         </profile>
     </profiles>
+
     <activeProfiles>
-        <activeProfile>confluent-filter</activeProfile>
+        <activeProfile>standard-repos</activeProfile>
     </activeProfiles>
 </settings>
