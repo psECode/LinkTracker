@@ -17,4 +17,7 @@ public class SchedulerProperties {
 
     @NotNull
     private Duration linkCheckInterval;
+
+    @NotNull
+    private int batchSize;
 }

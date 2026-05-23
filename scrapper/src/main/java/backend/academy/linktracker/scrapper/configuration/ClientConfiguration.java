@@ -1,8 +1,8 @@
 package backend.academy.linktracker.scrapper.configuration;
 
-import backend.academy.linktracker.scrapper.domain.api.BotClient;
-import backend.academy.linktracker.scrapper.domain.api.github.GithubClient;
-import backend.academy.linktracker.scrapper.domain.api.stackoverflow.StackoverflowClient;
+import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
+import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackoverflow.entities.StackOverflowClient;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import backend.academy.linktracker.scrapper.properties.StackoverflowProperties;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class ClientConfiguration {
     }
 
     @Bean
-    public StackoverflowClient stackoverflowClient(
+    public StackOverflowClient stackoverflowClient(
             @Value("${app.stackoverflow.url:https://api.stackexchange.com/2.3/}") String baseUrl) {
 
         UriComponentsBuilder uriBuilder =
@@ -69,7 +69,7 @@ public class ClientConfiguration {
 
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build()
-                .createClient(StackoverflowClient.class);
+                .createClient(StackOverflowClient.class);
     }
 
     private <T> T createClient(Class<T> clientClass, RestClient restClient) {

@@ -2,6 +2,7 @@ package backend.academy.linktracker.scrapper.infrastructure.mocks.links;
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
+import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -10,9 +11,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "mock")
 public class MemoryLinkRepository implements LinkRepository {
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 
@@ -46,7 +49,7 @@ public class MemoryLinkRepository implements LinkRepository {
     }
 
     @Override
-    public List<Link> readReadyToCheck(OffsetDateTime now) {
+    public List<Link> readReadyToCheck(OffsetDateTime now, int limit) {
         return storage.values().stream()
                 .filter(s -> s.getNextCheckAt().isBefore(now))
                 .toList();
@@ -64,5 +67,10 @@ public class MemoryLinkRepository implements LinkRepository {
         return storage.values().stream()
                 .filter(link -> link.getUrl().equals(url))
                 .findFirst();
+    }
+
+    @Override
+    public void updateMetadata(UpdateDateDTO dto) {
+        /* мне лень писать для моков реализацию уже */
     }
 }

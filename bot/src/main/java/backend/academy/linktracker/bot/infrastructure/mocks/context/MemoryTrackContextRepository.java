@@ -5,9 +5,11 @@ import backend.academy.linktracker.bot.domain.context.track.TrackContextReposito
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "mock")
 public class MemoryTrackContextRepository implements TrackContextRepository {
 
     private final Map<Long, TrackContext> storage = new ConcurrentHashMap<>();

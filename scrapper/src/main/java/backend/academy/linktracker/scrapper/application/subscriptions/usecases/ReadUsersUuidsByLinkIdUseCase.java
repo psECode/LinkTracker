@@ -1,6 +1,5 @@
 package backend.academy.linktracker.scrapper.application.subscriptions.usecases;
 
-import backend.academy.linktracker.scrapper.domain.subscriptions.SubscriptionRepository;
 import backend.academy.linktracker.scrapper.domain.subscriptions.entities.Subscription;
 import java.util.List;
 import java.util.UUID;
@@ -10,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ReadUsersUuidsByLinkIdUseCase {
-    private final SubscriptionRepository subscriptionRepository;
+    private final ReadSubscriptionService readSubscriptionService;
 
     public List<UUID> execute(UUID linkId) {
-        List<Subscription> subscriptions = subscriptionRepository.readByLink(linkId);
+        List<Subscription> subscriptions = readSubscriptionService.readByLinkUUID(linkId);
         return subscriptions.stream().map(Subscription::getUserId).toList();
     }
 }

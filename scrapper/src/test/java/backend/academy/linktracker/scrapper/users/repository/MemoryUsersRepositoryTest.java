@@ -43,7 +43,7 @@ class MemoryUsersRepositoryTest {
 
         Optional<User> found = repository.readByUUID(uuid);
 
-        assertThat(found.isPresent());
+        assertThat(found).isPresent();
         assertThat(found.get().getChatId()).isEqualTo(111L);
     }
 
@@ -59,7 +59,7 @@ class MemoryUsersRepositoryTest {
     }
 
     public Optional<User> createSimpleUser(MemoryUsersRepository repository, Long chatId) {
-        CreateUserDto dto = CreateUserDto.builder().chatId(chatId).build();
+        CreateUserDto dto = new CreateUserDto(chatId);
         return repository.save(dto);
     }
 }

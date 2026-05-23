@@ -2,8 +2,22 @@ server:
   port: 8081
 
 spring:
-  application:
-    name: scrapper
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/scrapper
+    username: postgres
+    password: postgres
+
+  liquibase:
+    enabled: false
+    change-log: file:migrations/changelog-master.xml
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
 
 app:
   stackoverflow:
@@ -14,5 +28,7 @@ app:
   bot:
     url: http://localhost:8080
   scheduler:
-    interval: 20s
-    linkcheckinterval: 2m
+    interval: 1m
+    linkcheckinterval: 4m
+    batch-size: 10
+  access-type: jdbc
