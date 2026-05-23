@@ -1,13 +1,10 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.subscriptions.repository;
 
-import backend.academy.linktracker.scrapper.infrastructure.api.OutboxProcessor;
-import com.example.notification.LinkUpdateEvent;
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
@@ -18,10 +15,4 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
             "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration",
             "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration"
         })
-class JdbcSubscriptionTest {
-    @MockitoBean
-    private KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
-
-    @MockitoBean
-    private OutboxProcessor outboxProcessor;
-}
+class JdbcSubscriptionTest extends SubscriptionIntegrationTest {}
