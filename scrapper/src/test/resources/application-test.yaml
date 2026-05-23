@@ -4,4 +4,5 @@ spring:
     change-log: file:migrations/changelog-master.xml
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
+    show-sql: true
