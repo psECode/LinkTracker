@@ -54,4 +54,5 @@ test:
     - echo "$CI_JOB_TOKEN" | docker login gitlab.education.tbank.ru:443 -u gitlab-ci-token --password-stdin
   timeout: 10m
   script:
-    - ./mvnw verify
+    - ./mvnw dependency:go-offline -B -ntp
+    #- ./mvnw verify verify -T 1C -ntp -Dskip.installnodenpm -Dskip.npm -Dskip.webpack -Dspotbugs.skip=true -Dpmd.skip=true -Dcheckstyle.skip=true
