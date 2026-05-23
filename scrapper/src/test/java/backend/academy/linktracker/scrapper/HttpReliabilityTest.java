@@ -12,10 +12,9 @@ import static org.mockito.Mockito.verify;
 
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
-import com.example.notification.LinkUpdateEvent;
+import com.example.notification.RawUpdateEvent;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -54,7 +53,7 @@ class HttpReliabilityTest {
     private CircuitBreakerRegistry circuitBreakerRegistry;
 
     @MockitoBean
-    protected KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
+    protected KafkaTemplate<String, RawUpdateEvent> kafkaTemplate;
 
     @DynamicPropertySource
     static void overrideBotUrl(DynamicPropertyRegistry registry) {
@@ -73,7 +72,7 @@ class HttpReliabilityTest {
         // g
         wireMockServer.stubFor(
                 post(urlEqualTo("/updates")).willReturn(aResponse().withStatus(500)));
-        LinkUpdate update = new LinkUpdate(1L, URI.create("http://test.com"), "desc", List.of(1L));
+        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L));
 
         // w
         sender.send(update);
@@ -90,7 +89,7 @@ class HttpReliabilityTest {
         // g
         wireMockServer.stubFor(post(urlEqualTo("/updates"))
                 .willReturn(aResponse().withStatus(500).withHeader("Content-Type", "application/json")));
-        LinkUpdate update = new LinkUpdate(1L, URI.create("http://test.com"), "desc", List.of(1L));
+        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L));
 
         // w
         sender.send(update);

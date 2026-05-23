@@ -14,7 +14,6 @@ import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.infrastructure.api.OutboxProcessor;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
-import com.example.notification.LinkUpdateEvent;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -45,9 +43,6 @@ public abstract class LinkRepositoryIntegrationTest {
 
     @MockitoBean
     protected ReadTrackedLinkService readTrackedLinkService;
-
-    @MockitoBean
-    protected KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
 
     @MockitoBean
     protected OutboxProcessor outboxProcessor;

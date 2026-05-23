@@ -4,7 +4,7 @@ import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxMessage;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxRepository;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxStatus;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
-import com.example.notification.LinkUpdateEvent;
+import com.example.notification.RawUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class OutboxProcessor {
     private final OutboxRepository outboxRepository;
-    private final KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
+    private final KafkaTemplate<String, RawUpdateEvent> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     @Value("${app.kafka.topic-name}")
@@ -35,10 +35,10 @@ public class OutboxProcessor {
             try {
                 LinkUpdate dto = objectMapper.readValue(msg.getPayload(), LinkUpdate.class);
 
-                LinkUpdateEvent event = LinkUpdateEvent.newBuilder()
+                RawUpdateEvent event = RawUpdateEvent.newBuilder()
                         .setId(dto.id())
-                        .setUrl(dto.url().toString())
                         .setDescription(dto.description())
+                        .setAuthor(dto.author() != null ? dto.author() : "unknown")
                         .setTgChatIds(dto.tgChatIds())
                         .build();
 

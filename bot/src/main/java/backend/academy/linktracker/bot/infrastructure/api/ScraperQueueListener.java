@@ -2,8 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.api;
 
 import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUseCase;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
-import com.example.notification.LinkUpdateEvent;
-import java.net.URI;
+import com.example.notification.ProcessedUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -20,14 +19,14 @@ public class ScraperQueueListener {
             topics = "${app.kafka.topic-name}",
             groupId = "bot-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void listen(LinkUpdateEvent event) {
-        log.info("got message from kafka: {}", event.getUrl());
+    public void listen(ProcessedUpdateEvent event) {
+        log.info("got message from kafka");
 
         try {
             LinkUpdate update = new LinkUpdate(
                     event.getId(),
-                    URI.create(event.getUrl().toString()),
                     event.getDescription().toString(),
+                    event.getPriority().toString(),
                     event.getTgChatIds());
 
             log.debug("data: {}", update);

@@ -9,7 +9,6 @@ import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUse
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
 import backend.academy.linktracker.bot.infrastructure.api.BotController;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,8 @@ class BotControllerTest {
     private ProcessUpdateUseCase processUpdateUseCase;
 
     @Test
-    void sendUpdate_Success() throws Exception {
-        LinkUpdate update = new LinkUpdate(1L, URI.create("https://github.com"), "abracadabra", List.of(123L));
+    void sendUpdateSuccess() throws Exception {
+        LinkUpdate update = new LinkUpdate(1L, "abracadabra", "MEDIUM", List.of(123L));
 
         mockMvc.perform(post("/updates")
                         .contentType(MediaType.APPLICATION_JSON)

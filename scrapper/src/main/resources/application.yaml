@@ -12,7 +12,7 @@ spring:
 
   liquibase:
     enabled: true
-    change-log: file:migrations/changelog-master.xml
+    change-log: classpath:migrations/changelog-master.xml
 
   jpa:
     hibernate:
@@ -20,18 +20,12 @@ spring:
     show-sql: true
 
   kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: true
-    topic-name: "link_updates"
+    bootstrap-servers: localhost:29092
 
 app:
   stackoverflow:
     key: ${STACKOVERFLOW_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
-    access-token: ${STACKOVERFLOW_ACCESS_KEY:} # Use env variable. DO NOT KEEP TOKEN HERE
+    access-token: ${STACKOVERFLOW_ACCESS_KEY:}2 # Use env variable. DO NOT KEEP TOKEN HERE
   github:
     token: ${GITHUB_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
   bot:
@@ -44,10 +38,10 @@ app:
   access-type: jdbc
   use-queue: true
   kafka:
-    bootstrap-servers: localhost:9092
-    topic-name: "link_updates"
-    schema-registry-url: "http://localhost:8081"
+    bootstrap-servers: localhost:29092
+    schema-registry-url: "http://localhost:8083"
     use-queue: true
+    topic-name: "link.raw-updates"
 
 resilience4j:
   retry:
