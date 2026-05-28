@@ -38,6 +38,11 @@ class CacheTest {
     }
 
     @Test
+    void checkCacheManager() {
+        System.out.println("Current CacheManager: " + cacheManager.getClass().getName());
+    }
+
+    @Test
     void shouldReturnCachedValueEvenWhenClientChanges() {
         // g
         Long chatId = 123L;
