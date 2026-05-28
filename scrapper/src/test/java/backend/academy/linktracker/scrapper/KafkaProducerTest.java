@@ -41,8 +41,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
         "app.access-type=jpa",
         "spring.jpa.hibernate.ddl-auto=validate",
         "spring.liquibase.enabled=true",
-        "app.use-queue=false",
-        "spring.liquibase.drop-first=true"
+        "app.use-queue=false"
     })
 class KafkaProducerTest {
 
