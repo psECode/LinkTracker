@@ -30,11 +30,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @Slf4j
+@TestPropertySource(
+    properties = {
+        "app.access-type=jpa",
+        "spring.jpa.hibernate.ddl-auto=validate",
+        "spring.liquibase.enabled=true",
+        "app.use-queue=false"
+    })
 class KafkaProducerTest {
 
     @Autowired
