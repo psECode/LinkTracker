@@ -11,3 +11,10 @@ spring:
       ddl-auto: update
   liquibase:
     enabled: false
+
+logging:
+  level:
+    root: WARN
+    backend.academy: INFO
+    org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLogger: OFF
+    org.testcontainers: INFO

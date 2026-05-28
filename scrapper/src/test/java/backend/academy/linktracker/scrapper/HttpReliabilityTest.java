@@ -10,6 +10,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
+import backend.academy.linktracker.scrapper.application.links.usecases.CreateTrackedLinkService;
+import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
+import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import com.example.notification.RawUpdateEvent;
@@ -33,13 +36,12 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(
-        properties = {
-            "app.access-type=jpa",
-            "spring.jpa.hibernate.ddl-auto=validate",
-            "spring.liquibase.enabled=true",
-            "app.use-queue=false"
-        })
+@TestPropertySource(properties = {
+    "spring.jpa.hibernate.ddl-auto=validate",
+    "spring.liquibase.enabled=true",
+    "spring.liquibase.drop-first=true",
+    "app.use-queue=false"
+})
 @ActiveProfiles("test")
 class HttpReliabilityTest {
 
@@ -54,6 +56,15 @@ class HttpReliabilityTest {
 
     @MockitoBean
     protected KafkaTemplate<String, RawUpdateEvent> kafkaTemplate;
+
+    @MockitoBean
+    private LinkRepository linkRepository;
+
+    @MockitoBean
+    private CreateTrackedLinkService createTrackedLinkService;
+
+    @MockitoBean
+    private ReadTrackedLinkService readTrackedLinkService;
 
     @DynamicPropertySource
     static void overrideBotUrl(DynamicPropertyRegistry registry) {
