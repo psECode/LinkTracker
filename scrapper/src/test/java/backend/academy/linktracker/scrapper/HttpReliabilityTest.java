@@ -36,8 +36,8 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 @TestPropertySource(
         properties = {
             "app.access-type=jpa",
-            "spring.jpa.hibernate.ddl-auto=update",
-            "spring.liquibase.enabled=false",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.liquibase.enabled=true",
             "app.use-queue=false"
         })
 @ActiveProfiles("test")
