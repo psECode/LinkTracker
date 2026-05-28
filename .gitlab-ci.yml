@@ -1,17 +1,7 @@
 image: "${GITLAB_DOCKER_PROXY}/eclipse-temurin:25-jdk-alpine"
 
 variables:
-  MAVEN_OPTS: >-
-    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-    -Dmaven.wagon.http.retryHandler.count=1
-    -Dmaven.wagon.http.connectionTimeout=15000
-    -Dmaven.wagon.http.readTimeout=15000
-    -Ddependency.locations.enabled=false
-    -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    -Dmaven.plugin.validation=brief
-    -Xmx3g
-    -XX:+TieredCompilation
-    -XX:TieredStopAtLevel=1
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   GITLAB_DOCKER_PROXY: "gitlab.education.tbank.ru:443/backend-academy-java-2025/lecture-materials/dependency_proxy/containers"
 
 workflow:

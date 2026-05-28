@@ -62,6 +62,13 @@ class KafkaProducerTest {
         registry.add("spring.datasource.url", TestcontainersConfiguration.POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", TestcontainersConfiguration.POSTGRES::getUsername);
         registry.add("spring.datasource.password", TestcontainersConfiguration.POSTGRES::getPassword);
+
+        String schemaRegistryUrl = String.format(
+                "http://%s:%d",
+                TestcontainersConfiguration.SCHEMA_REGISTRY.getHost(),
+                TestcontainersConfiguration.SCHEMA_REGISTRY.getMappedPort(8081));
+
+        registry.add("app.kafka.schema-registry-url", () -> schemaRegistryUrl);
     }
 
     @Test
