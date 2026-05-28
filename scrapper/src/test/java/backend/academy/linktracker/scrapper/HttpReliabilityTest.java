@@ -38,6 +38,7 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
             "app.access-type=jpa",
             "spring.jpa.hibernate.ddl-auto=validate",
             "spring.liquibase.enabled=true",
+            "spring.liquibase.drop-first=true",
             "app.use-queue=false"
         })
 @ActiveProfiles("test")
