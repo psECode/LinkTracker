@@ -57,8 +57,6 @@ public abstract class LinkRepositoryIntegrationTest {
         registry.add("spring.datasource.password", TestcontainersConfiguration.POSTGRES::getPassword);
 
         registry.add("spring.liquibase.enabled", () -> "true");
-        registry.add("spring.liquibase.change-log", () -> "file:migrations/changelog-master.xml");
-
         registry.add("spring.sql.init.mode", () -> "never");
         registry.add("spring.jpa.open-in-view", () -> "false");
     }

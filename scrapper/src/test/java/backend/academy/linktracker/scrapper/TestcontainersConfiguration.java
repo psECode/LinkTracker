@@ -78,9 +78,6 @@ public class TestcontainersConfiguration {
             registry.add("app.kafka.schema-registry-url", () -> "mock://http://localhost:8081");
             registry.add("app.kafka.topic-name", () -> "link_updates");
             registry.add("app.kafka.use-queue", () -> "true");
-
-            registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
-            registry.add("spring.liquibase.enabled", () -> "false");
         };
     }
 }

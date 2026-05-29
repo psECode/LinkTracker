@@ -37,12 +37,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @Import(TestcontainersConfiguration.class)
 @Slf4j
 @TestPropertySource(
-        properties = {
-            "spring.jpa.hibernate.ddl-auto=validate",
-            "spring.liquibase.enabled=true",
-            "spring.liquibase.drop-first=true",
-            "app.use-queue=true"
-        })
+        properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.liquibase.enabled=true", "app.use-queue=true"})
 class KafkaProducerTest {
 
     @Autowired

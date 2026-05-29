@@ -36,12 +36,8 @@ import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(properties = {
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.liquibase.enabled=true",
-    "spring.liquibase.drop-first=true",
-    "app.use-queue=false"
-})
+@TestPropertySource(
+        properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.liquibase.enabled=true", "app.use-queue=false"})
 @ActiveProfiles("test")
 class HttpReliabilityTest {
 

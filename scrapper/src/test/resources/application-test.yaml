@@ -8,13 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
   liquibase:
-    enabled: false
-
-logging:
-  level:
-    root: WARN
-    backend.academy: INFO
-    org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLogger: OFF
-    org.testcontainers: INFO
+    enabled: true
+    change-log: classpath:migrations/changelog-master.xml
