@@ -8,7 +8,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.Lin
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.ScrapperUpdateSender;
 import backend.academy.linktracker.scrapper.properties.AppProperties;
 import backend.academy.linktracker.scrapper.properties.KafkaProperties;
-import com.example.notification.LinkUpdateEvent;
+import com.example.notification.RawUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -41,20 +41,22 @@ public class SenderConfig {
     }
 
     @Bean
-    public ProducerFactory<String, LinkUpdateEvent> producerFactory() {
+    public ProducerFactory<String, RawUpdateEvent> producerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-
         props.put("schema.registry.url", kafkaProperties.getSchemaRegistryUrl());
+        props.put("auto.register.schemas", "true");
 
         return new DefaultKafkaProducerFactory<>(props);
     }
 
     @Bean
-    public KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    @Primary
+    public KafkaTemplate<String, RawUpdateEvent> kafkaTemplate(
+            ProducerFactory<String, RawUpdateEvent> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
     }
 
     @Bean

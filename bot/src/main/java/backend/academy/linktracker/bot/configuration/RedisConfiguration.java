@@ -1,10 +1,7 @@
 package backend.academy.linktracker.bot.configuration;
 
 import backend.academy.linktracker.bot.properties.CacheProperties;
-import io.lettuce.core.ClientOptions;
-import io.lettuce.core.protocol.ProtocolVersion;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.data.redis.autoconfigure.LettuceClientConfigurationBuilderCustomizer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,13 +16,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 @EnableCaching
 @RequiredArgsConstructor
 public class RedisConfiguration {
-
-    @Bean
-    public LettuceClientConfigurationBuilderCustomizer lettuceClientCustomizer() {
-        return clientConfigurationBuilder -> clientConfigurationBuilder.clientOptions(
-                ClientOptions.builder().protocolVersion(ProtocolVersion.RESP3).build());
-    }
-
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, CacheProperties properties) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()

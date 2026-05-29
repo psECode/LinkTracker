@@ -12,14 +12,12 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDe
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,22 +56,20 @@ public class LinkUpdateScheduler {
     private void handleLink(Link link) {
         try {
             LinkUpdateReport report = linkUpdater.process(link);
-
             List<Long> chatIds = getChatIdsForLink(link.getId());
             if (chatIds.isEmpty()) return;
 
-            String description = null;
             if (report.errorMessage() != null) {
-                description = "Ошибка при проверке ссылки: " + report.errorMessage();
-            } else if (!report.updates().isEmpty()) {
-                description = report.updates().stream()
-                        .map(UpdateDescription::message)
-                        .collect(Collectors.joining("\n\n"));
-            }
-
-            if (description != null) {
                 sender.send(new LinkUpdate(
-                        link.getId().getMostSignificantBits(), URI.create(link.getUrl()), description, chatIds));
+                        link.getId().getMostSignificantBits(),
+                        "Ошибка при проверке ссылки: " + report.errorMessage(),
+                        null,
+                        chatIds));
+            } else {
+                for (UpdateDescription update : report.updates()) {
+                    sender.send(new LinkUpdate(
+                            link.getId().getMostSignificantBits(), update.message(), update.author(), chatIds));
+                }
             }
 
             UpdateTimeDTO updateTimeDTO =

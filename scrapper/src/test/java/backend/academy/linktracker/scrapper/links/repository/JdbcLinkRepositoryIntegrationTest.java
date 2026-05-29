@@ -9,8 +9,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(
-        properties = {"app.access-type=jdbc", "spring.jpa.hibernate.ddl-auto=none", "spring.liquibase.enabled=false"})
+@TestPropertySource(properties = {"app.access-type=jdbc"})
 @EnableAutoConfiguration(
         excludeName = {
             "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration",

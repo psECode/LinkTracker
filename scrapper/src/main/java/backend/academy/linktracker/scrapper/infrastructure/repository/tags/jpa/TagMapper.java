@@ -5,10 +5,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TagMapper {
-
-    /**
-     * Преобразует JPA Entity в чистую доменную модель Tag через Builder
-     */
     public Tag toDomain(TagJpaEntity entity) {
         if (entity == null || entity.getId() == null) {
             return null;
@@ -20,18 +16,13 @@ public class TagMapper {
                 .build();
     }
 
-    /**
-     * Преобразует доменную модель Tag обратно в JPA Entity
-     */
     public TagJpaEntity toEntity(Tag domain) {
         if (domain == null) {
             return null;
         }
 
-        // Создаем составной ключ для сущности
         TagJpaEntity.TagId id = new TagJpaEntity.TagId(domain.getSubscriptionId(), domain.getTagString());
 
-        // Возвращаем новую сущность (предполагаем наличие конструктора)
         return new TagJpaEntity(id);
     }
 }

@@ -3,6 +3,7 @@
 
 # Package Files #
 *.jar
+!local-repo/**/*.jar
 *.war
 *.ear
 

@@ -7,6 +7,5 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(
-        properties = {"app.access-type=jpa", "spring.jpa.hibernate.ddl-auto=update", "spring.liquibase.enabled=false"})
+@TestPropertySource(properties = {"app.access-type=jpa"})
 public class JpaLinkRepositoryIntegrationTest extends LinkRepositoryIntegrationTest {}

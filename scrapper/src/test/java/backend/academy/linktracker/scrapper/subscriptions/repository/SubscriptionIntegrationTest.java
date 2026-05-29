@@ -21,7 +21,6 @@ import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
-import com.example.notification.LinkUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.net.URI;
@@ -32,7 +31,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -45,9 +43,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @Transactional
 @ActiveProfiles("test")
 public abstract class SubscriptionIntegrationTest {
-
-    @MockitoBean
-    private KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -77,8 +72,6 @@ public abstract class SubscriptionIntegrationTest {
         registry.add("spring.datasource.password", TestcontainersConfiguration.POSTGRES::getPassword);
 
         registry.add("spring.liquibase.enabled", () -> "true");
-        registry.add("spring.liquibase.change-log", () -> "file:migrations/changelog-master.xml");
-
         registry.add("spring.sql.init.mode", () -> "never");
         registry.add("spring.jpa.open-in-view", () -> "false");
     }

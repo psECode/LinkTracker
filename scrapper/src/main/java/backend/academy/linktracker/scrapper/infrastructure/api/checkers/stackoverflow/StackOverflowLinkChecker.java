@@ -47,7 +47,7 @@ public class StackOverflowLinkChecker implements LinkChecker {
         return items.stream()
                 .map(item -> {
                     String text = formatMessage(item, eventType);
-                    return new UpdateDescription(text, item.createdAt());
+                    return new UpdateDescription(text, item.owner().displayName(), item.createdAt());
                 })
                 .toList();
     }

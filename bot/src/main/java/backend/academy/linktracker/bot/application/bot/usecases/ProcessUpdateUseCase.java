@@ -11,7 +11,7 @@ public class ProcessUpdateUseCase {
     private final MessageSenderService messageSender;
 
     public void execute(LinkUpdate update) {
-        String messageText = String.format("Обновление по ссылке: %s%n%n%s", update.url(), update.description());
+        String messageText = String.format("Обновление: %s", update.description());
 
         for (Long chatId : update.tgChatIds()) {
             messageSender.sendText(chatId, messageText);

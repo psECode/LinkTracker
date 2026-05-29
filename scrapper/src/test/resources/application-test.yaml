@@ -8,6 +8,7 @@ spring:
     allow-bean-definition-overriding: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:migrations/changelog-master.xml

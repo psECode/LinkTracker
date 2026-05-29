@@ -26,6 +26,7 @@
 
     <modules>
         <module>ai-agent</module>
+        <module>avro-schemas</module>
         <module>bot</module>
         <module>build-report-aggregate</module>
         <module>scrapper</module>
@@ -83,6 +84,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>backend.academy.link-tracker</groupId>
+                <artifactId>avro-schemas</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -215,6 +221,26 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <id>project-local-repo</id>
+            <url>file://${maven.multiModuleProjectDirectory}/local-repo</url>
+        </repository>
+    </repositories>
 
     <build>
         <pluginManagement>
@@ -396,6 +422,24 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro-maven-plugin</artifactId>
+                    <version>1.11.3</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>schema</goal>
+                            </goals>
+                            <phase>generate-sources</phase>
+                            <configuration>
+                                <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+                                <outputDirectory>${project.build.directory}/generated-sources/avro</outputDirectory>
+                                <stringType>String</stringType>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
