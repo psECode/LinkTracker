@@ -1,5 +1,6 @@
 package backend.academy.linktracker.ai;
 
+import java.util.List;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -29,16 +30,16 @@ public class TestcontainersConfiguration {
     public DynamicPropertyRegistrar dynamicPropertyRegistrar() {
         return registry -> {
             registry.add("app.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
-            registry.add("app.kafka.raw-updates-topic", () -> "link.raw-updates");
-            registry.add("app.kafka.processed-updates-topic", () -> "link.processed-updates");
-            registry.add("app.kafka.consumer-group", () -> "test-group-" + java.util.UUID.randomUUID());
+
+            registry.add("ai-agent.prioritization.high-keywords", () -> List.of("critical", "urgent", "security"));
+            registry.add("ai-agent.prioritization.low-keywords", () -> List.of("typo", "docs"));
             registry.add("app.kafka.schema-registry-url", () -> "mock://http://localhost:8081");
 
-            registry.add("ai-agent.filtering.stop-words", () -> "spam,ads,promo");
-            registry.add("ai-agent.filtering.excluded-authors", () -> "bot-user");
-            registry.add("ai-agent.filtering.min-length", () -> "20");
+            registry.add("ai-agent.grouping.window-ms", () -> "1000");
+
+            registry.add("ai-agent.filtering.stop-words", () -> "spam,ads");
+            registry.add("ai-agent.filtering.min-length", () -> "10");
             registry.add("ai-agent.summarization.threshold", () -> "500");
-            registry.add("ai-agent.processor.type", () -> "simple");
         };
     }
 }

@@ -37,7 +37,7 @@ class KafkaListenerTest {
     private ProcessUpdateUseCase processUpdateUseCase;
 
     @Test
-    void HappyPathTest() {
+    void happyPath() {
         ProcessedUpdateEvent event = ProcessedUpdateEvent.newBuilder()
                 .setId(1L)
                 .setDescription("test")

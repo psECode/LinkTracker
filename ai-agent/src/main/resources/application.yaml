@@ -29,6 +29,17 @@ app:
     schema-registry-url: http://localhost:8083
 
 ai-agent:
+  prioritization:
+    high-keywords:
+      - critical
+      - urgent
+      - breaking
+      - security
+    low-keywords:
+      - minor
+      - typo
+      - chore
+      - docs
   filtering:
     stop-words:
       - spam
@@ -41,3 +52,5 @@ ai-agent:
     threshold: 500
   processor:
     type: simple
+  grouping:
+    window-ms: 30000

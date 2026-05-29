@@ -77,7 +77,7 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void SubscriptionTest() throws Exception {
+    void subscriptionTest() throws Exception {
         // g
         Long chatId = 123321L;
         URI url = URI.create("https://stackoverflow.com/questions/1");
@@ -110,7 +110,7 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void DeletingSubscriptionsWhenUserDeletesTest() throws Exception {
+    void deletingSubscriptionsWhenUserDeletes() throws Exception {
         // g
         Long chatId = 111L;
         String url = "https://github.com/user/repo";
@@ -135,7 +135,7 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void GetTagsTest() throws Exception {
+    void getTags() throws Exception {
         Long chatId = 222L;
         String url = "https://stackoverflow.com/questions/1";
         List<String> tags = List.of("spring", "hibernate");
@@ -151,7 +151,7 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void DeletingUserTest() throws Exception {
+    void deletingUser() throws Exception {
         // g
         Long chatId = 333L;
         setupUserAndSubscription(chatId, "https://github.com/1", List.of("t1"));
@@ -166,7 +166,7 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void SubscribingWithoutRegistrationTest() throws Exception {
+    void subscribingWithoutRegistration() throws Exception {
         Long unknownChatId = 999999L;
         AddLinkRequest request = new AddLinkRequest(URI.create("https://github.com"), List.of());
 
@@ -178,12 +178,12 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     @Test
-    void DeletingNonExistentUserTest() throws Exception {
+    void deletingNonExistentUser() throws Exception {
         mockMvc.perform(delete("/tg-chat/{id}", 888888L)).andExpect(status().isNotFound());
     }
 
     @Test
-    void DeletingNonExistingSubscriptionTest() throws Exception {
+    void deletingNonExistingSubscription() throws Exception {
         Long chatId = 444L;
         mockMvc.perform(post("/tg-chat/{id}", chatId));
 

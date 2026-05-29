@@ -64,7 +64,7 @@ public class AsynchronomousLinkProccessingTest {
     private LinkUpdateScheduler scheduler;
 
     @Test
-    void schedulerUsingMultipleThreadsTest() {
+    void schedulerUsingMultipleThreads() {
         // g
         int batchSize = 2;
         Link link1 = createLink("https://github.com/1");
@@ -94,7 +94,7 @@ public class AsynchronomousLinkProccessingTest {
     }
 
     @Test
-    void errorsDontStopUpdaterTest() throws Exception {
+    void errorsDontStopUpdater() throws Exception {
         // g
         Link badLink = createLink("https://github.com/bad");
         Link goodLink = createLink("https://github.com/good");
@@ -131,7 +131,7 @@ public class AsynchronomousLinkProccessingTest {
     }
 
     @Test
-    void errorsAreHandledAndNotifiesUserTest() throws Exception {
+    void errorsAreHandledAndNotifiesUser() throws Exception {
         // g
         Link link = createLink("https://github.com/error-report");
         when(properties.getBatchSize()).thenReturn(10);

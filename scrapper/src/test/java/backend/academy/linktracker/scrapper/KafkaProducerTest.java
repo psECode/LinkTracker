@@ -75,7 +75,7 @@ class KafkaProducerTest {
     }
 
     @Test
-    void SendAvroToKafkaTest() throws Exception {
+    void sendAvroToKafka() throws Exception {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, TestcontainersConfiguration.KAFKA.getBootstrapServers());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group-" + UUID.randomUUID());
@@ -99,7 +99,7 @@ class KafkaProducerTest {
                 }
             }
 
-            assertNotNull(receivedEvent, "Сообщение не было получено из Kafka");
+            assertNotNull(receivedEvent);
             assertEquals(1L, receivedEvent.getId());
             assertThat(receivedEvent.getAuthor()).hasToString("author");
         }

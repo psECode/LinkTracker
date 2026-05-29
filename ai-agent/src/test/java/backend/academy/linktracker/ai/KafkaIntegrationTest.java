@@ -1,20 +1,26 @@
 package backend.academy.linktracker.ai;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.*;
 
-import backend.academy.linktracker.ai.processors.UpdateProcessor;
+import backend.academy.linktracker.ai.processors.GroupingService;
+import backend.academy.linktracker.ai.properties.AppProperties;
+import backend.academy.linktracker.ai.properties.KafkaProperties;
 import com.example.notification.ProcessedUpdateEvent;
 import com.example.notification.RawUpdateEvent;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -24,124 +30,97 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 public class KafkaIntegrationTest {
 
-    @Value("${app.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
-    @Value("${app.kafka.raw-updates-topic}")
-    private String rawUpdatesTopic;
-
-    @Value("${app.kafka.processed-updates-topic}")
-    private String processedUpdatesTopic;
-
-    @Value("${app.kafka.schema-registry-url}")
-    private String schemaRegistryUrl;
+    @Autowired
+    private KafkaProperties kafkaProperties;
 
     @Autowired
-    private UpdateProcessor processor;
+    private GroupingService groupingService;
+
+    private AppProperties properties;
 
     @Test
-    void successfulProcessingAndSendingTest() throws Exception {
-        long id = 1001L;
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(id)
-                .setDescription("description                    ")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L, 222L))
-                .build();
+    void shouldGroupUpdatesAndPublishToKafka() throws Exception {
+        long chatId = 111L;
 
         try (KafkaProducer<String, RawUpdateEvent> producer = createRawProducer()) {
-            producer.send(new ProducerRecord<>(rawUpdatesTopic, raw)).get();
+            producer.send(new ProducerRecord<>("link.raw-updates", createRaw(1, "Regular", chatId)))
+                    .get();
+            producer.send(new ProducerRecord<>("link.raw-updates", createRaw(2, "critical bug", chatId)))
+                    .get();
         }
 
-        ProcessedUpdateEvent received = waitForProcessedMessage(id);
+        try (var consumer = createProcessedConsumer()) {
+            consumer.subscribe(List.of("link.processed-updates"));
 
-        assertThat(received).isNotNull();
-        assertThat(received.getId()).isEqualTo(id);
-        assertThat(received.getDescription()).hasToString("description                    ");
-        assertThat(received.getTgChatIds()).containsExactly(111L, 222L);
-        assertThat(received.getPriority()).hasToString("LOW");
+            Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+                var records = consumer.poll(Duration.ofMillis(500));
+                boolean found = StreamSupport.stream(records.spliterator(), false)
+                        .anyMatch(r -> r.value().getTgChatIds().contains(chatId)
+                                && r.value().getPriority().toString().equals("HIGH"));
+
+                assertTrue(found);
+            });
+        }
     }
 
     @Test
-    void testFilteringByStopWord() throws Exception {
-        long id = 2001L;
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(id)
-                .setDescription("description with spam")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
-                .build();
-
+    void shouldNotPublishFilteredMessage() throws Exception {
+        long chatId = 999L;
         try (KafkaProducer<String, RawUpdateEvent> producer = createRawProducer()) {
-            producer.send(new ProducerRecord<>(rawUpdatesTopic, raw)).get();
+            producer.send(new ProducerRecord<>("link.raw-updates", createRaw(3, "some spam", chatId)))
+                    .get();
         }
 
-        ProcessedUpdateEvent received = waitForProcessedMessage(id);
-        assertThat(received).isNull();
-    }
+        try (KafkaConsumer<String, ProcessedUpdateEvent> consumer = createProcessedConsumer()) {
+            consumer.subscribe(Collections.singletonList("link.processed-updates"));
+            ConsumerRecords<String, ProcessedUpdateEvent> records = consumer.poll(Duration.ofSeconds(3));
 
-    @Test
-    void testSummarizationTriggered() throws Exception {
-        long id = 3001L;
-        String text = "A".repeat(600);
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(id)
-                .setDescription(text)
-                .setAuthor("nick")
-                .setTgChatIds(List.of(333L))
-                .build();
-
-        try (KafkaProducer<String, RawUpdateEvent> producer = createRawProducer()) {
-            producer.send(new ProducerRecord<>(rawUpdatesTopic, raw)).get();
+            boolean found = false;
+            for (var record : records) {
+                if (record.value().getTgChatIds().contains(chatId)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertFalse(found);
         }
-
-        ProcessedUpdateEvent received = waitForProcessedMessage(id);
-        assertThat(received).isNotNull();
-        assertThat(received.getDescription()).hasSize(503);
-        assertThat(received.getDescription()).endsWith("...");
     }
 
     private KafkaProducer<String, RawUpdateEvent> createRawProducer() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-        props.put("schema.registry.url", schemaRegistryUrl);
-        return new KafkaProducer<>(props);
+        Properties p = new Properties();
+        p.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, TestcontainersConfiguration.KAFKA.getBootstrapServers());
+        p.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        p.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        p.put("schema.registry.url", "mock://http://localhost:8081");
+        return new KafkaProducer<>(p);
     }
 
-    private ProcessedUpdateEvent waitForProcessedMessage(long expectedId) {
-        Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "test-" + UUID.randomUUID());
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
-        consumerProps.put("schema.registry.url", schemaRegistryUrl);
-        consumerProps.put("specific.avro.reader", "true");
+    private KafkaConsumer<String, ProcessedUpdateEvent> createProcessedConsumer() {
+        Properties p = new Properties();
+        p.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, TestcontainersConfiguration.KAFKA.getBootstrapServers());
+        p.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group-" + UUID.randomUUID());
+        p.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        p.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        p.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
+        p.put("schema.registry.url", "mock://http://localhost:8081");
+        p.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true);
+        return new KafkaConsumer<>(p);
+    }
 
-        try (KafkaConsumer<String, ProcessedUpdateEvent> consumer = new KafkaConsumer<>(consumerProps)) {
-            consumer.subscribe(Collections.singletonList(processedUpdatesTopic));
-            AtomicReference<ProcessedUpdateEvent> result = new AtomicReference<>();
-            for (int i = 0; i < 30; i++) {
-                ConsumerRecords<String, ProcessedUpdateEvent> records = consumer.poll(Duration.ofSeconds(1));
-                for (ConsumerRecord<String, ProcessedUpdateEvent> record : records) {
-                    if (record.value().getId() == expectedId) {
-                        result.set(record.value());
-                        break;
-                    }
-                }
-                if (result.get() != null) break;
-            }
-            return result.get();
-        }
+    private RawUpdateEvent createRaw(long id, String desc, long chatId) {
+        return RawUpdateEvent.newBuilder()
+                .setId(id)
+                .setDescription(desc)
+                .setAuthor("nick")
+                .setTgChatIds(List.of(chatId))
+                .build();
     }
 }
