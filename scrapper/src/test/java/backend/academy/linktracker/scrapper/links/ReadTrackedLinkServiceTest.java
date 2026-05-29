@@ -25,28 +25,28 @@ class ReadTrackedLinkServiceTest {
     private ReadTrackedLinkService readService;
 
     @Test
-    void readByUUIDsTest() {
+    void readByUUIDs() {
         Set<UUID> ids = Set.of(UUID.randomUUID(), UUID.randomUUID());
         readService.readByUUIDs(ids);
         verify(linkRepository).readAllByIds(ids);
     }
 
     @Test
-    void readByUrlTest() {
+    void readByUrl() {
         String url = "https://github.com/user/repo";
         readService.readByUrl(url);
         verify(linkRepository).readByUrl(url);
     }
 
     @Test
-    void readNyUUIDTest() {
+    void readByUUID() {
         UUID id = UUID.randomUUID();
         readService.readByUUID(id);
         verify(linkRepository).readById(id);
     }
 
     @Test
-    void readExpiredLinksTest() {
+    void readExpiredLinks() {
         int limit = 10;
 
         readService.readExpiredLinks(limit);

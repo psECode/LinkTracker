@@ -32,7 +32,7 @@ class ListCommandTest {
     private ListCommand listCommand;
 
     @Test
-    void happyListTest() {
+    void happyList() {
         var link1 = new LinkResponse(1L, URI.create("https://1"), List.of("java"));
         var link2 = new LinkResponse(2L, URI.create("https://2"), List.of("петухон"));
 
@@ -45,7 +45,7 @@ class ListCommandTest {
     }
 
     @Test
-    void emptyListTest() {
+    void emptyList() {
         when(scrapperClient.getAllLinks(anyLong())).thenReturn(new ListLinksResponse(List.of(), 0));
         when(messageSource.getMessage(eq("bot.command.list.empty"), any(), any()))
                 .thenReturn("Список пуст");
@@ -56,7 +56,7 @@ class ListCommandTest {
     }
 
     @Test
-    void tagListTest() {
+    void tagList() {
         var link1 = new LinkResponse(1L, URI.create("https://1"), List.of("java"));
         var link2 = new LinkResponse(2L, URI.create("https://2"), List.of("петухон"));
 

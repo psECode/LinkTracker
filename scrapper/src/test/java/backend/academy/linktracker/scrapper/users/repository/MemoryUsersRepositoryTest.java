@@ -20,7 +20,7 @@ class MemoryUsersRepositoryTest {
     }
 
     @Test
-    void CreateTest() {
+    void createTest() {
         Optional<User> saved = createSimpleUser(repository, 12345L);
 
         Optional<User> found = repository.readByChatId(12345L);
@@ -30,7 +30,7 @@ class MemoryUsersRepositoryTest {
     }
 
     @Test
-    void AlreadyExistsTest() {
+    void alreadyExistsTest() {
         Optional<User> first = createSimpleUser(repository, 12345L);
         Optional<User> user = createSimpleUser(repository, 12345L);
         assertThat(user).isEmpty();
@@ -48,7 +48,7 @@ class MemoryUsersRepositoryTest {
     }
 
     @Test
-    void DeleteTest() {
+    void deleteTest() {
         User user = createSimpleUser(repository, 999L).get();
         UUID uuid = user.getId();
 

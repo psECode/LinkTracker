@@ -33,7 +33,7 @@ class RateLimitTest {
     private ProcessUpdateUseCase processUpdateUseCase;
 
     @Test
-    void rateLimitTest() throws Exception {
+    void rateLimit() throws Exception {
         // g
         LinkUpdate update = new LinkUpdate(1L, "desc", "MEDIUM", List.of(1L));
         String json = objectMapper.writeValueAsString(update);

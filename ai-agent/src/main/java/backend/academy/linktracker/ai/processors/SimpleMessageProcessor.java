@@ -21,7 +21,6 @@ public class SimpleMessageProcessor implements MessageProcessor {
     @Override
     public Optional<ProcessedUpdateEvent> process(RawUpdateEvent raw) {
         if (shouldFilter(raw)) {
-            log.info("Message id={} filtered out", raw.getId());
             return Optional.empty();
         }
 
@@ -29,31 +28,41 @@ public class SimpleMessageProcessor implements MessageProcessor {
         int threshold = properties.getSummarization().getThreshold();
         if (description.length() > threshold) {
             description = description.substring(0, threshold) + "...";
-            log.info(
-                    "Message id={} summarized (length: {} -> {})",
-                    raw.getId(),
-                    raw.getDescription().toString().length(),
-                    description.length());
         }
+
+        String priority = calculatePriority(description);
 
         ProcessedUpdateEvent processed = ProcessedUpdateEvent.newBuilder()
                 .setId(raw.getId())
                 .setDescription(description)
                 .setTgChatIds(raw.getTgChatIds())
-                .setPriority("LOW")
+                .setPriority(priority)
                 .build();
         return Optional.of(processed);
+    }
+
+    private String calculatePriority(String text) {
+        String lowerText = text.toLowerCase();
+        var prioritizeCfg = properties.getPrioritization();
+
+        boolean hasHigh =
+                prioritizeCfg.getHighKeywords().stream().anyMatch(word -> lowerText.contains(word.toLowerCase()));
+        if (hasHigh) return "HIGH";
+
+        boolean hasLow =
+                prioritizeCfg.getLowKeywords().stream().anyMatch(word -> lowerText.contains(word.toLowerCase()));
+        if (hasLow) return "LOW";
+
+        return "MEDIUM";
     }
 
     private boolean shouldFilter(RawUpdateEvent raw) {
         String description = raw.getDescription().toString().toLowerCase();
         String author = raw.getAuthor().toString().toLowerCase();
-
         List<String> stopWords = properties.getFiltering().getStopWords();
         if (stopWords != null) {
             for (String word : stopWords) {
                 if (description.contains(word.toLowerCase())) {
-                    log.debug("Stop word '{}' found in message id={}", word, raw.getId());
                     return true;
                 }
             }
@@ -61,13 +70,11 @@ public class SimpleMessageProcessor implements MessageProcessor {
 
         List<String> excludedAuthors = properties.getFiltering().getExcludedAuthors();
         if (excludedAuthors != null && excludedAuthors.stream().anyMatch(a -> a.equalsIgnoreCase(author))) {
-            log.debug("Author '{}' is excluded for message id={}", author, raw.getId());
             return true;
         }
 
         int minLength = properties.getFiltering().getMinLength();
         if (description.length() < minLength) {
-            log.debug("Message id={} too short (length={}, min={})", raw.getId(), description.length(), minLength);
             return true;
         }
 

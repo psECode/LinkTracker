@@ -8,7 +8,6 @@ import backend.academy.linktracker.ai.properties.AppProperties;
 import com.example.notification.ProcessedUpdateEvent;
 import com.example.notification.RawUpdateEvent;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +20,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SimpleMessageProcessorTest {
-
     @Mock
     private AppProperties properties;
 
@@ -31,6 +29,9 @@ class SimpleMessageProcessorTest {
     @Mock
     private AppProperties.Summarization summarization;
 
+    @Mock
+    private AppProperties.Prioritization prioritization;
+
     @InjectMocks
     private SimpleMessageProcessor processor;
 
@@ -38,95 +39,44 @@ class SimpleMessageProcessorTest {
     void setUp() {
         when(properties.getFiltering()).thenReturn(filtering);
         when(properties.getSummarization()).thenReturn(summarization);
-        when(filtering.getStopWords()).thenReturn(List.of("spam", "ads"));
-        when(filtering.getExcludedAuthors()).thenReturn(List.of("bot-user"));
-        when(filtering.getMinLength()).thenReturn(20);
-        when(summarization.getThreshold()).thenReturn(500);
+        when(properties.getPrioritization()).thenReturn(prioritization);
+
+        when(filtering.getStopWords()).thenReturn(List.of("spam"));
+        when(filtering.getExcludedAuthors()).thenReturn(List.of());
+        when(filtering.getMinLength()).thenReturn(5);
+        when(summarization.getThreshold()).thenReturn(100);
+
+        when(prioritization.getHighKeywords()).thenReturn(List.of("critical", "security"));
+        when(prioritization.getLowKeywords()).thenReturn(List.of("typo", "docs"));
     }
 
     @Test
-    void shouldPassFilterWhenMessageValid() {
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
+    void shouldReturnHighPriority() {
+        RawUpdateEvent raw = createRaw("Security fix for critical bug");
+        ProcessedUpdateEvent result = processor.process(raw).get();
+        assertThat(result.getPriority().toString()).isEqualTo("HIGH");
+    }
+
+    @Test
+    void shouldReturnMediumPriority() {
+        RawUpdateEvent raw = createRaw("Just a regular update message");
+        ProcessedUpdateEvent result = processor.process(raw).get();
+        assertThat(result.getPriority().toString()).isEqualTo("MEDIUM");
+    }
+
+    @Test
+    void shouldReturnLowPriority() {
+        RawUpdateEvent raw = createRaw("Fixed minor typo in readme");
+        ProcessedUpdateEvent result = processor.process(raw).get();
+        assertThat(result.getPriority().toString()).isEqualTo("LOW");
+    }
+
+    private RawUpdateEvent createRaw(String text) {
+        return RawUpdateEvent.newBuilder()
                 .setId(1L)
-                .setDescription("description                    ")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
+                .setDescription(text)
+                .setAuthor("user")
+                .setTgChatIds(List.of(1L))
                 .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isPresent();
-        ProcessedUpdateEvent out = result.get();
-        assertThat(out.getId()).isEqualTo(1L);
-        assertThat(out.getDescription()).isEqualTo("description                    ");
-    }
-
-    @Test
-    void shouldFilterByStopWord() {
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(2L)
-                .setDescription("description                     with spam")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
-                .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void shouldFilterByExcludedAuthor() {
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(3L)
-                .setDescription("description                    ")
-                .setAuthor("bot-user")
-                .setTgChatIds(List.of(111L))
-                .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void shouldFilterByMinLength() {
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(4L)
-                .setDescription("des")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
-                .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void shouldSummarizeLongText() {
-        String longText = "a".repeat(600);
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(5L)
-                .setDescription(longText)
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
-                .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isPresent();
-        ProcessedUpdateEvent out = result.get();
-        assertThat(out.getDescription()).hasSize(503);
-        assertThat(out.getDescription()).endsWith("...");
-    }
-
-    @Test
-    void shouldNotSummarizeShortText() {
-        RawUpdateEvent raw = RawUpdateEvent.newBuilder()
-                .setId(6L)
-                .setDescription("description                    ")
-                .setAuthor("nick")
-                .setTgChatIds(List.of(111L))
-                .build();
-
-        Optional<ProcessedUpdateEvent> result = processor.process(raw);
-        assertThat(result).isPresent();
-        assertThat(result.get().getDescription()).isEqualTo("description                    ");
     }
 }

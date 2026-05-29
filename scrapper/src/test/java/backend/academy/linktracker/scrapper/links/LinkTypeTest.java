@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 public class LinkTypeTest {
     @Test
-    void linkTypeTest() {
+    void linkType() {
         String url1 = "https://github.com/user/repo";
         String url2 = "https://www.github.com/user/repo/";
         String url3 = "https://stackoverflow.com/questions/123456/love-test";

@@ -1,6 +1,5 @@
 package backend.academy.linktracker.ai.properties;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,11 +11,11 @@ import org.springframework.validation.annotation.Validated;
 @Getter
 @Setter
 public class AppProperties {
-    @NotNull
     private Filtering filtering;
-
-    @NotNull
     private Summarization summarization;
+    private Prioritization prioritization;
+    private Grouping grouping;
+    private String processorType;
 
     @Getter
     @Setter
@@ -30,5 +29,18 @@ public class AppProperties {
     @Setter
     public static class Summarization {
         private int threshold;
+    }
+
+    @Getter
+    @Setter
+    public static class Prioritization {
+        private List<String> highKeywords;
+        private List<String> lowKeywords;
+    }
+
+    @Getter
+    @Setter
+    public static class Grouping {
+        private long windowMs;
     }
 }
