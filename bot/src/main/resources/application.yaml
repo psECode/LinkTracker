@@ -40,3 +40,14 @@ app:
   cache:
     list-links-ttl: 10m
     context-ttl: 30m
+  rate-limit:
+    capacity: 10
+    refresh-period: 1m
+
+resilience4j:
+  ratelimiter:
+    instances:
+      botApiLimit:
+        limitForPeriod: 3
+        limitRefreshPeriod: 10s
+        timeoutDuration: 0

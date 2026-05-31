@@ -5,6 +5,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.HttpLinkUpdateSender;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.KafkaLinkUpdateSender;
 import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
+import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.ScrapperUpdateSender;
 import backend.academy.linktracker.scrapper.properties.AppProperties;
 import backend.academy.linktracker.scrapper.properties.KafkaProperties;
 import com.example.notification.LinkUpdateEvent;
@@ -17,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -63,15 +65,22 @@ public class SenderConfig {
                 .build();
     }
 
-    @Bean
-    @ConditionalOnProperty(prefix = "app.kafka", name = "use-queue", havingValue = "true")
+    @Bean("kafkaLinkUpdateSender")
     public LinkUpdateSender kafkaLinkUpdateSender(OutboxRepository outboxRepository, ObjectMapper objectMapper) {
         return new KafkaLinkUpdateSender(outboxRepository, objectMapper);
     }
 
-    @Bean
-    @ConditionalOnProperty(prefix = "app.kafka", name = "use-queue", havingValue = "false", matchIfMissing = true)
+    @Bean("httpLinkUpdateSender")
     public LinkUpdateSender httpLinkUpdateSender(BotClient botClient) {
         return new HttpLinkUpdateSender(botClient);
+    }
+
+    @Bean
+    @Primary
+    public LinkUpdateSender scrapperUpdateSender(
+            @Qualifier("httpLinkUpdateSender") LinkUpdateSender httpSender,
+            @Qualifier("kafkaLinkUpdateSender") LinkUpdateSender kafkaSender,
+            AppProperties appProperties) {
+        return new ScrapperUpdateSender(httpSender, kafkaSender, appProperties);
     }
 }

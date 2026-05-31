@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper;
+package backend.academy.linktracker.scrapper.subscriptions.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import backend.academy.linktracker.scrapper.ScrapperApplication;
+import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.subscriptions.SubscriptionRepository;
 import backend.academy.linktracker.scrapper.domain.subscriptions.dtos.ReadSubscriptionDTO;
@@ -18,6 +20,7 @@ import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
+import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import com.example.notification.LinkUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -30,6 +33,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -39,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({TestcontainersConfiguration.class, com.fasterxml.jackson.databind.ObjectMapper.class})
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 public abstract class SubscriptionIntegrationTest {
 
     @MockitoBean
@@ -61,6 +66,9 @@ public abstract class SubscriptionIntegrationTest {
 
     @Autowired
     protected TagRepository tagRepository;
+
+    @MockitoBean
+    protected LinkUpdateSender linkUpdateSender;
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

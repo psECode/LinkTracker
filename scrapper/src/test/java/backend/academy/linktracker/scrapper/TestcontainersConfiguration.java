@@ -1,5 +1,7 @@
 package backend.academy.linktracker.scrapper;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +15,13 @@ public class TestcontainersConfiguration {
 
     public static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17-alpine");
     public static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:3.7.0"));
+    public static final WireMockServer WIREMOCK =
+            new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
 
     static {
         POSTGRES.start();
         KAFKA.start();
+        WIREMOCK.start();
     }
 
     @Bean
@@ -38,14 +43,20 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
+    public WireMockServer wireMockServer() {
+        return WIREMOCK;
+    }
+
+    @Bean
     public DynamicPropertyRegistrar dynamicPropertyRegistrar() {
         return (registry) -> {
+            registry.add("app.bot.url", () -> "http://localhost:" + WIREMOCK.port());
+
             registry.add("app.kafka.bootstrap-servers", KAFKA::getBootstrapServers);
             registry.add("app.kafka.schema-registry-url", () -> "mock://http://localhost:8081");
             registry.add("app.kafka.topic-name", () -> "link_updates");
             registry.add("app.kafka.use-queue", () -> "true");
 
-            registry.add("app.access-type", () -> "jpa");
             registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
             registry.add("spring.liquibase.enabled", () -> "false");
         };

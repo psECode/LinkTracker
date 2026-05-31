@@ -1,4 +1,4 @@
-package backend.academy.linktracker.scrapper.subscriptions.repository;
+package backend.academy.linktracker.scrapper.subscriptions.repository.mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

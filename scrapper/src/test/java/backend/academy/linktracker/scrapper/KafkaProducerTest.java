@@ -27,15 +27,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-@TestPropertySource(
-        properties = {"app.access-type=jpa", "spring.jpa.hibernate.ddl-auto=update", "spring.liquibase.enabled=false"})
-@DirtiesContext
 @Slf4j
 class KafkaProducerTest {
 

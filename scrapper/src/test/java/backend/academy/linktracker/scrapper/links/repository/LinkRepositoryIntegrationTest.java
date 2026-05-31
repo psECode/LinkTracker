@@ -13,6 +13,7 @@ import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkD
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.infrastructure.api.OutboxProcessor;
+import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import com.example.notification.LinkUpdateEvent;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
@@ -26,22 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest(
-        classes = ScrapperApplication.class,
-        properties = {
-            "spring.jpa.hibernate.ddl-auto=update",
-            "spring.liquibase.enabled=false",
-            "spring.main.allow-bean-definition-overriding=true",
-            "app.access-type=jpa"
-        })
+@SpringBootTest(classes = ScrapperApplication.class)
 @Import(TestcontainersConfiguration.class)
 @Transactional
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class LinkRepositoryIntegrationTest {
     @Autowired
     protected LinkRepository linkRepository;
@@ -57,6 +51,22 @@ public abstract class LinkRepositoryIntegrationTest {
 
     @MockitoBean
     protected OutboxProcessor outboxProcessor;
+
+    @MockitoBean
+    protected LinkUpdateSender linkUpdateSender;
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", TestcontainersConfiguration.POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", TestcontainersConfiguration.POSTGRES::getUsername);
+        registry.add("spring.datasource.password", TestcontainersConfiguration.POSTGRES::getPassword);
+
+        registry.add("spring.liquibase.enabled", () -> "true");
+        registry.add("spring.liquibase.change-log", () -> "file:migrations/changelog-master.xml");
+
+        registry.add("spring.sql.init.mode", () -> "never");
+        registry.add("spring.jpa.open-in-view", () -> "false");
+    }
 
     @Test
     void shouldSaveAndFindByUrl() {
