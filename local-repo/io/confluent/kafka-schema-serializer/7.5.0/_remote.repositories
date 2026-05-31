@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Thu May 28 21:07:15 GMT+05:00 2026
+kafka-schema-serializer-7.5.0.jar>confluent=
+kafka-schema-serializer-7.5.0.pom>confluent=
+kafka-schema-serializer-7.5.0.pom>project-local-repo=

@@ -45,7 +45,7 @@ class TelegramCBTest {
     }
 
     @Test
-    void CBOpenTest() {
+    void CBOpen() {
         // g
         String path = "/bot" + token + "/sendMessage";
         wireMockServer.stubFor(post(urlEqualTo(path))

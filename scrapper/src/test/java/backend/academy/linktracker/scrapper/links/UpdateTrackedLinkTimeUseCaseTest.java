@@ -38,7 +38,7 @@ class UpdateTrackedLinkTimeUseCaseTest {
     private final Duration checkInterval = Duration.ofMinutes(5);
 
     @Test
-    void updateWhenHasUpdatesTest() {
+    void updateWhenHasUpdates() {
         Link link = Link.builder()
                 .id(linkId)
                 .lastUpdated(OffsetDateTime.MIN)
@@ -59,7 +59,7 @@ class UpdateTrackedLinkTimeUseCaseTest {
     }
 
     @Test
-    void updateWhenNoUpdatesTest() {
+    void updateWhenNoUpdates() {
         OffsetDateTime originalLastUpdate = OffsetDateTime.now().minusDays(1);
         Link link = Link.builder()
                 .id(linkId)

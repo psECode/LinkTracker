@@ -1,6 +1,5 @@
 package backend.academy.linktracker.scrapper.infrastructure.api.dtos;
 
-import java.net.URI;
 import java.util.List;
 
-public record LinkUpdate(Long id, URI url, String description, List<Long> tgChatIds) {}
+public record LinkUpdate(Long id, String description, String author, List<Long> tgChatIds) {}

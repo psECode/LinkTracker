@@ -35,7 +35,6 @@ public class UnsubscribeUserUseCase {
         Subscription sub =
                 readSubscriptionService.read(readDto).orElseThrow(() -> new SubscriptionNotFoundException(chatId, url));
 
-        // Вызов атомарного удаления
         deleteSubscriptionUseCase.execute(sub.getId());
 
         return new SubscriptionResult(sub, link, user);

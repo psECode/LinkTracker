@@ -57,7 +57,7 @@ public class GithubLinkChecker implements LinkChecker {
                 .filter(i -> i.createdAt().isAfter(lastUpdated))
                 .map(i -> {
                     String text = formatMessage(i.title(), i.user().login(), i.createdAt(), eventType, i.body());
-                    return new UpdateDescription(text, i.createdAt());
+                    return new UpdateDescription(text, i.user().login(), i.createdAt());
                 })
                 .toList();
     }

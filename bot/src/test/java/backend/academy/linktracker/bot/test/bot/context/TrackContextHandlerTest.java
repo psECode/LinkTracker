@@ -65,7 +65,7 @@ class TrackContextHandlerTest {
     }
 
     @Test
-    void completionSuccessTest() {
+    void completionSuccess() {
         when(readTrackUseCase.execute(chatId)).thenReturn(Optional.of(context));
         givenMessage("bot.command.track.add", "Успех");
 
@@ -79,7 +79,7 @@ class TrackContextHandlerTest {
     }
 
     @Test
-    void completionConflictTest() {
+    void completionConflict() {
         when(readTrackUseCase.execute(chatId)).thenReturn(Optional.of(context));
 
         doThrow(createHttpException(HttpStatus.CONFLICT)).when(scrapperClient).addLink(eq(chatId), any());
@@ -93,7 +93,7 @@ class TrackContextHandlerTest {
     }
 
     @Test
-    void completionNotFoundTest() {
+    void completionNotFound() {
         when(readTrackUseCase.execute(chatId)).thenReturn(Optional.of(context));
 
         doThrow(createHttpException(HttpStatus.NOT_FOUND)).when(scrapperClient).addLink(eq(chatId), any());
@@ -107,7 +107,7 @@ class TrackContextHandlerTest {
     }
 
     @Test
-    void completionGenericErrorTest() {
+    void completionGenericError() {
         when(readTrackUseCase.execute(chatId)).thenReturn(Optional.of(context));
 
         doThrow(new RuntimeException("abracadabra")).when(scrapperClient).addLink(eq(chatId), any());

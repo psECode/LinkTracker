@@ -5,7 +5,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUseCase;
-import com.example.notification.LinkUpdateEvent;
+import com.example.notification.ProcessedUpdateEvent;
 import com.pengrad.telegrambot.TelegramBot;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ class KafkaListenerTest {
     private TelegramBot telegramBot;
 
     @Autowired
-    private KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
+    private KafkaTemplate<String, ProcessedUpdateEvent> kafkaTemplate;
 
     @Value("${app.kafka.topic-name}")
     private String topicName;
@@ -37,12 +37,12 @@ class KafkaListenerTest {
     private ProcessUpdateUseCase processUpdateUseCase;
 
     @Test
-    void HappyPathTest() {
-        LinkUpdateEvent event = LinkUpdateEvent.newBuilder()
+    void happyPath() {
+        ProcessedUpdateEvent event = ProcessedUpdateEvent.newBuilder()
                 .setId(1L)
-                .setUrl("https://github.com/user/repo")
                 .setDescription("test")
                 .setTgChatIds(List.of(1473932230L))
+                .setPriority("MEDIUM")
                 .build();
 
         log.info("Sending Avro test event to topic {}: {}", topicName, event);
@@ -51,7 +51,7 @@ class KafkaListenerTest {
 
         verify(processUpdateUseCase, timeout(10000).times(1))
                 .execute(argThat(receivedUpdate -> receivedUpdate.id().equals(1L)
-                        && receivedUpdate.url().toString().equals("https://github.com/user/repo")
-                        && receivedUpdate.description().equals("test")));
+                        && receivedUpdate.description().equals("test")
+                        && receivedUpdate.priority().equals("MEDIUM")));
     }
 }

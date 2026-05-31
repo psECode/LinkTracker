@@ -33,8 +33,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 public class AsynchronomousLinkProccessingTest {
 
     @Mock
@@ -62,7 +64,7 @@ public class AsynchronomousLinkProccessingTest {
     private LinkUpdateScheduler scheduler;
 
     @Test
-    void SchedulerUsingMultipleThreadsTest() {
+    void schedulerUsingMultipleThreads() {
         // g
         int batchSize = 2;
         Link link1 = createLink("https://github.com/1");
@@ -92,7 +94,7 @@ public class AsynchronomousLinkProccessingTest {
     }
 
     @Test
-    void ErrorsDontStopUpdaterTest() throws Exception {
+    void errorsDontStopUpdater() throws Exception {
         // g
         Link badLink = createLink("https://github.com/bad");
         Link goodLink = createLink("https://github.com/good");
@@ -100,31 +102,36 @@ public class AsynchronomousLinkProccessingTest {
         when(properties.getBatchSize()).thenReturn(10);
         when(readTrackedLinkService.readExpiredLinks(10)).thenReturn(List.of(badLink, goodLink));
 
-        when(readUsersUuidsByLinkIdUseCase.execute(any())).thenReturn(List.of(UUID.randomUUID()));
+        List<UUID> uuids = List.of(UUID.randomUUID());
+        when(readUsersUuidsByLinkIdUseCase.execute(any())).thenReturn(uuids);
         when(readUserService.readByUUID(any()))
                 .thenReturn(Optional.of(User.builder().chatId(1L).build()));
 
         when(linkUpdater.process(badLink)).thenThrow(new RuntimeException("API Fatal Error"));
 
-        UpdateDescription update = new UpdateDescription("New Issue Created", OffsetDateTime.now());
+        UpdateDescription update = new UpdateDescription("New Issue Created", "author", OffsetDateTime.now());
         when(linkUpdater.process(goodLink)).thenReturn(new LinkUpdateReport(goodLink, List.of(update), null));
 
         // w
         scheduler.update();
 
         // t
-        verify(linkUpdateSender).send(argThat(u -> u.url().toString().equals(goodLink.getUrl())));
+        verify(linkUpdateSender)
+                .send(argThat(u -> u.id().equals(goodLink.getId().getMostSignificantBits())
+                        && u.description().equals("New Issue Created")
+                        && u.author().equals("author")
+                        && u.tgChatIds().contains(1L)));
 
         verify(updateTrackedLinkTimeUseCase).execute(argThat(dto -> dto.linkId().equals(goodLink.getId())));
-
         verify(updateTrackedLinkTimeUseCase, never())
                 .execute(argThat(dto -> dto.linkId().equals(badLink.getId())));
 
-        verify(linkUpdateSender, never()).send(argThat(u -> u.url().toString().equals(badLink.getUrl())));
+        verify(linkUpdateSender, never())
+                .send(argThat(u -> u.id().equals(badLink.getId().getMostSignificantBits())));
     }
 
     @Test
-    void ErrorsAreHandledAndNotifiesUserTest() throws Exception {
+    void errorsAreHandledAndNotifiesUser() throws Exception {
         // g
         Link link = createLink("https://github.com/error-report");
         when(properties.getBatchSize()).thenReturn(10);

@@ -75,7 +75,7 @@ class CommandsTest {
     }
 
     @Test
-    void StartCommandTest() {
+    void startCommand() {
         givenMessage("bot.command.start.message", "Привет!");
 
         String result = startCommand.execute(chatId, "/start");
@@ -84,7 +84,7 @@ class CommandsTest {
     }
 
     @Test
-    void trackContextStartTest() {
+    void trackContextStart() {
         givenMessage("bot.command.track.start", "Пришлите ссылку");
 
         String result = trackCommand.execute(chatId, "/track");
@@ -95,7 +95,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateTrackHappyTest() {
+    void immediateTrackHappy() {
         String url = "https://github.com";
         String text = "/track " + url + " tag1,tag2";
         givenMessage("bot.command.track.add", "true");
@@ -107,7 +107,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateTrackConflictTest() {
+    void immediateTrackConflict() {
         String url = "https://github.com";
         String text = "/track " + url;
 
@@ -123,7 +123,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateTrackNonExistentUserTest() {
+    void immediateTrackNonExistentUser() {
         String text = "/track https://github.com";
         givenMessage("bot.error.user_not_found", "true");
 
@@ -137,7 +137,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateTrackRandomErrorTest() {
+    void immediateTrackRandomError() {
         String text = "/track https://github.com";
         givenMessage("bot.error", "true");
 
@@ -149,7 +149,7 @@ class CommandsTest {
     }
 
     @Test
-    void startUntrackContextTest() {
+    void startUntrackContext() {
         var link = new LinkResponse(1L, URI.create("http://gh.com"), List.of());
         when(scrapperClient.getAllLinks(chatId)).thenReturn(new ListLinksResponse(List.of(link), 1));
         when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Response");
@@ -162,7 +162,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateUntrackHappyTest() {
+    void immediateUntrackHappy() {
         String url = "https://github.com/user/repo";
         String text = "/untrack " + url;
         when(messageSource.getMessage(eq("bot.command.untrack.success"), any(), any()))
@@ -175,7 +175,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateNonExistentUserUntrackTest() {
+    void immediateNonExistentUserUntrack() {
         String url = "https://github.com/user/repo";
         var exception = createHttpException(HttpStatus.NOT_FOUND, "UserNotFoundException");
 
@@ -189,7 +189,7 @@ class CommandsTest {
     }
 
     @Test
-    void immediateNonExistentLinkUntrackTest() {
+    void immediateNonExistentLinkUntrack() {
         String url = "https://github.com/user/repo";
         var exception = createHttpException(HttpStatus.NOT_FOUND, "LinkNotFoundException");
 
@@ -203,13 +203,13 @@ class CommandsTest {
     }
 
     @Test
-    void HelpCommandTest() {
+    void helpCommand() {
         givenMessage("bot.command.help.message", "true");
         assertThat(helpCommand.execute(chatId, "/help")).isEqualTo("true");
     }
 
     @Test
-    void UnknownCommandTest() {
+    void unknownCommand() {
         givenMessage("bot.command.unknown.message", "true");
         assertThat(unknownCommand.execute(chatId, "abracadabra")).isEqualTo("true");
     }

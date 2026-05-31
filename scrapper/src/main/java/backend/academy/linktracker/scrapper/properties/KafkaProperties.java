@@ -19,7 +19,7 @@ public class KafkaProperties {
     @NotNull
     private String topicName;
 
-    private String schemaRegistryUrl = "http://localhost:8081";
+    private String schemaRegistryUrl;
 
     private boolean useQueue = true;
 }

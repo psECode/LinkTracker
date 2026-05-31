@@ -66,7 +66,7 @@ class UntrackContextHandlerTest {
     }
 
     @Test
-    void nonExistentUserTest() {
+    void nonExistentUser() {
         String link = "https://github.com/user/repo";
         var exception = createHttpException(HttpStatus.NOT_FOUND, "UserNotFoundException");
 
@@ -81,7 +81,7 @@ class UntrackContextHandlerTest {
     }
 
     @Test
-    void nonExistentLinkTest() {
+    void nonExistentLink() {
         String link = "https://github.com/user/repo";
         var exception = createHttpException(HttpStatus.NOT_FOUND, "LinkNotFoundException");
 
@@ -96,7 +96,7 @@ class UntrackContextHandlerTest {
     }
 
     @Test
-    void randomErrorTest() {
+    void randomError() {
         doThrow(new RuntimeException()).when(scrapperClient).removeLink(any(), any());
         when(messageSource.getMessage(eq("bot.error"), any(), any())).thenReturn("Error");
 
@@ -107,7 +107,7 @@ class UntrackContextHandlerTest {
     }
 
     @Test
-    void handle_CommandInterrupt() {
+    void handleCommandInterrupt() {
         ContextResult result = handler.handle(chatId, "/help");
 
         assertThat(result.handled()).isFalse();

@@ -1,6 +1,6 @@
 package backend.academy.linktracker.bot.configuration;
 
-import com.example.notification.LinkUpdateEvent;
+import com.example.notification.ProcessedUpdateEvent;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -31,11 +31,11 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
-    @Value("${spring.kafka.properties.schema.registry.url:http://schema-registry:8081}")
+    @Value("${spring.kafka.properties.schema.registry.url:http://localhost:8083}")
     private String schemaRegistryUrl;
 
     @Bean
-    public ConsumerFactory<String, LinkUpdateEvent> consumerFactory() {
+    public ConsumerFactory<String, ProcessedUpdateEvent> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -48,15 +48,15 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, LinkUpdateEvent> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, LinkUpdateEvent> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, ProcessedUpdateEvent> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ProcessedUpdateEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 
     @Bean
-    public ProducerFactory<String, LinkUpdateEvent> producerFactory() {
+    public ProducerFactory<String, ProcessedUpdateEvent> producerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -66,7 +66,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate() {
+    public KafkaTemplate<String, ProcessedUpdateEvent> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }

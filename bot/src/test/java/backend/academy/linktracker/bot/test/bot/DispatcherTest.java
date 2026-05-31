@@ -71,7 +71,7 @@ class DispatcherTest {
     }
 
     @Test
-    void DispatchTrackCommandTest() {
+    void dispatchTrackCommand() {
         givenNoActiveContext();
         givenMessage("bot.command.track.start");
 
@@ -82,7 +82,7 @@ class DispatcherTest {
     }
 
     @Test
-    void DispatchHelpTest() {
+    void dispatchHelp() {
         givenNoActiveContext();
         givenMessage("bot.command.help.message");
 
@@ -92,7 +92,7 @@ class DispatcherTest {
     }
 
     @Test
-    void DispatchUnknownTest() {
+    void dispatchUnknown() {
         givenNoActiveContext();
         givenMessage("bot.command.unknown.message");
 

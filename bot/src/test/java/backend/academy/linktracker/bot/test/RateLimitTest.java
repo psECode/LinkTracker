@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUseCase;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +29,13 @@ class RateLimitTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // Мокаем бизнес-логику, чтобы она не мешала тесту лимитов
     @MockitoBean
     private ProcessUpdateUseCase processUpdateUseCase;
 
     @Test
-    void rateLimitTest() throws Exception {
+    void rateLimit() throws Exception {
         // g
-        LinkUpdate update = new LinkUpdate(1L, URI.create("http://test.com"), "desc", List.of(1L));
+        LinkUpdate update = new LinkUpdate(1L, "desc", "MEDIUM", List.of(1L));
         String json = objectMapper.writeValueAsString(update);
 
         // w

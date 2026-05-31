@@ -25,7 +25,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void saveAndReadTest() {
+    void saveAndRead() {
         var dto = createSampleDto("https://example.com");
 
         Optional<Link> saved = repository.save(dto);
@@ -44,7 +44,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void deleteTest() {
+    void delete() {
         var dto = createSampleDto("https://example.com");
         Link link = repository.save(dto).orElseThrow();
         UUID id = link.getId();
@@ -56,14 +56,14 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void deleteNonExistentTest() {
+    void deleteNonExistent() {
         Optional<Link> deleted = repository.delete(UUID.randomUUID());
 
         assertThat(deleted).isEmpty();
     }
 
     @Test
-    void readByIdTest() {
+    void readById() {
         Link link = repository.save(createSampleDto("https://example.com")).orElseThrow();
 
         Optional<Link> found = repository.readById(link.getId());
@@ -76,7 +76,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void readByUrlTest() {
+    void readByUrl() {
         Link link = repository.save(createSampleDto("https://example.com")).orElseThrow();
 
         Optional<Link> found = repository.readByUrl(link.getUrl());
@@ -89,7 +89,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void readReadyToCheckTest() {
+    void readReadyToCheck() {
         OffsetDateTime now = OffsetDateTime.now();
         Link link1 =
                 repository.save(createDtoWithNextCheck(now.minusMinutes(5))).orElseThrow();
@@ -103,7 +103,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void readAllByIdsTest() {
+    void readAllByIds() {
         Link link1 = repository.save(createSampleDto("https://example.com")).orElseThrow();
         Link link2 = repository.save(createSampleDto("https://example2.com")).orElseThrow();
         Link link3 = repository.save(createSampleDto("https://example3.com")).orElseThrow();
@@ -116,7 +116,7 @@ class MemoryLinkRepositoryTest {
     }
 
     @Test
-    void readAllByIdsEmptyTest() {
+    void readAllByIdsEmpty() {
         repository.save(createSampleDto("https://example.com"));
 
         List<Link> result = repository.readAllByIds(Set.of(UUID.randomUUID()));

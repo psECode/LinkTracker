@@ -2,5 +2,55 @@ server:
   port: 8082
 
 spring:
-  application:
-    name: ai-agent
+  devtools:
+    restart:
+      enabled: false
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:8083
+        specific.avro.reader: true
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:8083
+
+app:
+  kafka:
+    bootstrap-servers: localhost:29092
+    raw-updates-topic: link.raw-updates
+    processed-updates-topic: link.processed-updates
+    consumer-group: ai-agent-service
+    schema-registry-url: http://localhost:8083
+
+ai-agent:
+  prioritization:
+    high-keywords:
+      - critical
+      - urgent
+      - breaking
+      - security
+    low-keywords:
+      - minor
+      - typo
+      - chore
+      - docs
+  filtering:
+    stop-words:
+      - spam
+      - ads
+      - promo
+    excluded-authors:
+      - bot-user
+    min-length: 20
+  summarization:
+    threshold: 500
+  processor:
+    type: simple
+  grouping:
+    window-ms: 30000

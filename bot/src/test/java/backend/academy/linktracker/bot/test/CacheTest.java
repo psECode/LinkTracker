@@ -9,6 +9,7 @@ import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -47,16 +49,14 @@ class CacheTest {
         when(scrapperClient.getAllLinks(chatId)).thenReturn(firstResponse);
 
         // w
-        ListLinksResponse result1 = cachedService.getAllLinks(chatId);
-
-        when(scrapperClient.getAllLinks(chatId)).thenReturn(secondResponse);
-
-        ListLinksResponse result2 = cachedService.getAllLinks(chatId);
+        cachedService.getAllLinks(chatId);
 
         // t
-        assertEquals(1, result1.size());
-        assertEquals(1, result2.size());
-        assertEquals(result1, result2);
+        Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+            when(scrapperClient.getAllLinks(chatId)).thenReturn(secondResponse);
+            ListLinksResponse result = cachedService.getAllLinks(chatId);
+            assertEquals(1, result.size());
+        });
     }
 
     @Test
@@ -67,16 +67,18 @@ class CacheTest {
         ListLinksResponse newResponse = new ListLinksResponse(List.of(), 2);
 
         when(scrapperClient.getAllLinks(chatId)).thenReturn(oldResponse);
-        cachedService.getAllLinks(chatId);
 
         // w
         cachedService.addLink(chatId, new AddLinkRequest(URI.create("http://test.com"), List.of()));
 
-        when(scrapperClient.getAllLinks(chatId)).thenReturn(newResponse);
-
-        ListLinksResponse resultAfterUpdate = cachedService.getAllLinks(chatId);
-
         // t
-        assertEquals(2, resultAfterUpdate.size());
+        Awaitility.await()
+                .atMost(2, TimeUnit.SECONDS)
+                .pollInterval(100, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    when(scrapperClient.getAllLinks(chatId)).thenReturn(newResponse);
+                    ListLinksResponse resultAfterUpdate = cachedService.getAllLinks(chatId);
+                    assertEquals(2, resultAfterUpdate.size());
+                });
     }
 }

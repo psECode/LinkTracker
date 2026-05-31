@@ -59,7 +59,7 @@ class MemorySubscriptionRepositoryTest {
     }
 
     @Test
-    void readByUserTest() {
+    void readByUser() {
         UUID user1 = UUID.randomUUID();
         UUID user2 = UUID.randomUUID();
         UUID user3 = UUID.randomUUID();
@@ -84,7 +84,7 @@ class MemorySubscriptionRepositoryTest {
     }
 
     @Test
-    void readByLinkTest() {
+    void readByLink() {
         UUID link1 = UUID.randomUUID();
         UUID link2 = UUID.randomUUID();
 
@@ -117,7 +117,7 @@ class MemorySubscriptionRepositoryTest {
     }
 
     @Test
-    void deleteNonExistentTest() {
+    void deleteNonExistent() {
         Subscription sub = repository
                 .save(new CreateSubscriptionDTO(UUID.randomUUID(), UUID.randomUUID(), List.of()))
                 .orElseThrow();

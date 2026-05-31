@@ -24,8 +24,7 @@
 
     <!--autogen-->
     <Match>
-        <Package name="com.example.notification" />
-        <Bug pattern="MS_EXPOSE_REP" />
+        <Package name="com.example.notification.*" />
     </Match>
 
     <!--
