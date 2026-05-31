@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.bot.CommandDispatcher;
 import backend.academy.linktracker.bot.application.bot.commands.HelpCommand;
 import backend.academy.linktracker.bot.application.bot.commands.StartCommand;
@@ -14,7 +15,6 @@ import backend.academy.linktracker.bot.application.context.track.usecases.SaveTr
 import backend.academy.linktracker.bot.application.context.usecases.DeleteActiveContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.ReadActiveContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.MessageSenderService;
 import backend.academy.linktracker.bot.domain.context.ContextHandlerFactory;
@@ -53,7 +53,7 @@ class DispatcherTest {
     private SaveTrackContextUseCase saveTrackContext;
 
     @Mock
-    private ScrapperClient scrapperClient;
+    private ScrapperServiceInterface scrapperClient;
 
     private CommandDispatcher dispatcher;
     private final Long chatId = 12345L;

@@ -5,11 +5,15 @@ import static org.assertj.core.api.Assertions.within;
 
 import backend.academy.linktracker.scrapper.ScrapperApplication;
 import backend.academy.linktracker.scrapper.TestcontainersConfiguration;
+import backend.academy.linktracker.scrapper.application.links.usecases.CreateTrackedLinkService;
+import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
 import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
+import backend.academy.linktracker.scrapper.infrastructure.api.OutboxProcessor;
+import com.example.notification.LinkUpdateEvent;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -21,28 +25,38 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest(classes = ScrapperApplication.class)
+@SpringBootTest(
+        classes = ScrapperApplication.class,
+        properties = {
+            "spring.jpa.hibernate.ddl-auto=update",
+            "spring.liquibase.enabled=false",
+            "spring.main.allow-bean-definition-overriding=true",
+            "app.access-type=jpa"
+        })
 @Import(TestcontainersConfiguration.class)
 @Transactional
+@ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class LinkRepositoryIntegrationTest {
     @Autowired
-    private LinkRepository linkRepository;
+    protected LinkRepository linkRepository;
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", TestcontainersConfiguration.POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", TestcontainersConfiguration.POSTGRES::getUsername);
-        registry.add("spring.datasource.password", TestcontainersConfiguration.POSTGRES::getPassword);
+    @MockitoBean
+    protected CreateTrackedLinkService createTrackedLinkService;
 
-        registry.add("spring.liquibase.enabled", () -> "true");
-        registry.add("spring.liquibase.change-log", () -> "file:migrations/changelog-master.xml");
+    @MockitoBean
+    protected ReadTrackedLinkService readTrackedLinkService;
 
-        registry.add("spring.sql.init.mode", () -> "never");
-        registry.add("spring.jpa.open-in-view", () -> "false");
-    }
+    @MockitoBean
+    protected KafkaTemplate<String, LinkUpdateEvent> kafkaTemplate;
+
+    @MockitoBean
+    protected OutboxProcessor outboxProcessor;
 
     @Test
     void shouldSaveAndFindByUrl() {
@@ -126,7 +140,7 @@ public abstract class LinkRepositoryIntegrationTest {
         assertThat(updated.getNextCheckAt()).isCloseTo(newNextCheck, within(1, ChronoUnit.MILLIS));
     }
 
-    private CreateTrackedLinkDTO createDto(String url) {
+    protected CreateTrackedLinkDTO createDto(String url) {
         return new CreateTrackedLinkDTO(
                 url,
                 OffsetDateTime.now().plusMinutes(5),

@@ -1,9 +1,9 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.LinkListFormattingUtil;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.SaveUntrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
@@ -26,7 +26,7 @@ import tools.jackson.databind.ObjectMapper;
 @Import(com.fasterxml.jackson.databind.ObjectMapper.class)
 public class UntrackCommand implements CommandInterface {
 
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
     private final SetActiveContextUseCase setActiveContext;
     private final SaveUntrackContextUseCase saveUntrackContext;
     private final MessageSource messageSource;

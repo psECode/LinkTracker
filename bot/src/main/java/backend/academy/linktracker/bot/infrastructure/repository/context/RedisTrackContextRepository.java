@@ -2,7 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.repository.context;
 
 import backend.academy.linktracker.bot.domain.context.track.TrackContext;
 import backend.academy.linktracker.bot.domain.context.track.TrackContextRepository;
-import java.time.Duration;
+import backend.academy.linktracker.bot.properties.CacheProperties;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class RedisTrackContextRepository implements TrackContextRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String PREFIX = "bot:track_context:";
-    private static final Duration TTL = Duration.ofMinutes(30);
+    private final CacheProperties properties;
 
     @Override
     public Optional<TrackContext> read(Long chatId) {
@@ -25,7 +25,7 @@ public class RedisTrackContextRepository implements TrackContextRepository {
 
     @Override
     public void save(TrackContext context) {
-        redisTemplate.opsForValue().set(PREFIX + context.getChatId(), context, TTL);
+        redisTemplate.opsForValue().set(PREFIX + context.getChatId(), context, properties.getContextTtl());
     }
 
     @Override

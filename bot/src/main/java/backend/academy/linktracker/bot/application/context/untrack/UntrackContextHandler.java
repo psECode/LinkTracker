@@ -1,7 +1,7 @@
 package backend.academy.linktracker.bot.application.context.untrack;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.DeleteUntrackContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.RemoveLinkRequest;
 import backend.academy.linktracker.bot.domain.context.ContextHandler;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
@@ -20,7 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 public class UntrackContextHandler implements ContextHandler {
 
     private final MessageSource messageSource;
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
     private final DeleteUntrackContextUseCase deleteUntrackData;
     private final ObjectMapper objectMapper;
 

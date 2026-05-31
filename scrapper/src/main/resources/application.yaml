@@ -19,6 +19,15 @@ spring:
       ddl-auto: validate
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+    topic-name: "link_updates"
+
 app:
   stackoverflow:
     key: ${STACKOVERFLOW_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
@@ -28,7 +37,13 @@ app:
   bot:
     url: http://localhost:8080
   scheduler:
-    interval: 1m
-    linkcheckinterval: 4m
+    interval: 30s
+    linkcheckinterval: 1m
     batch-size: 10
   access-type: jdbc
+  use-queue: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic-name: "link_updates"
+    schema-registry-url: "http://localhost:8081"
+    use-queue: true

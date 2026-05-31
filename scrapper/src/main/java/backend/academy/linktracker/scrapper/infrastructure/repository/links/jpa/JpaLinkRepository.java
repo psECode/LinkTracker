@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "jpa")
+@Profile("jpa")
 public class JpaLinkRepository implements LinkRepository {
     private final LinkJpaRepositoryInterface jpa;
     private final LinkMapper mapper;

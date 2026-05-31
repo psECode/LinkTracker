@@ -15,11 +15,11 @@ import backend.academy.linktracker.scrapper.application.users.usecases.ReadUserS
 import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
-import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.LinkUpdateScheduler;
 import backend.academy.linktracker.scrapper.infrastructure.api.LinkUpdater;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkUpdateReport;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
+import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -56,7 +56,7 @@ public class AsynchronomousLinkProccessingTest {
     private LinkUpdater linkUpdater;
 
     @Mock
-    private BotClient botClient;
+    private LinkUpdateSender linkUpdateSender;
 
     @InjectMocks
     private LinkUpdateScheduler scheduler;
@@ -92,7 +92,7 @@ public class AsynchronomousLinkProccessingTest {
     }
 
     @Test
-    void ErrorsDontStopUpdaterTest() {
+    void ErrorsDontStopUpdaterTest() throws Exception {
         // g
         Link badLink = createLink("https://github.com/bad");
         Link goodLink = createLink("https://github.com/good");
@@ -113,18 +113,18 @@ public class AsynchronomousLinkProccessingTest {
         scheduler.update();
 
         // t
-        verify(botClient).sendUpdate(argThat(u -> u.url().toString().equals(goodLink.getUrl())));
+        verify(linkUpdateSender).send(argThat(u -> u.url().toString().equals(goodLink.getUrl())));
 
         verify(updateTrackedLinkTimeUseCase).execute(argThat(dto -> dto.linkId().equals(goodLink.getId())));
 
         verify(updateTrackedLinkTimeUseCase, never())
                 .execute(argThat(dto -> dto.linkId().equals(badLink.getId())));
 
-        verify(botClient, never()).sendUpdate(argThat(u -> u.url().toString().equals(badLink.getUrl())));
+        verify(linkUpdateSender, never()).send(argThat(u -> u.url().toString().equals(badLink.getUrl())));
     }
 
     @Test
-    void ErrorsAreHandledAndNotifiesUserTest() {
+    void ErrorsAreHandledAndNotifiesUserTest() throws Exception {
         // g
         Link link = createLink("https://github.com/error-report");
         when(properties.getBatchSize()).thenReturn(10);
@@ -141,7 +141,7 @@ public class AsynchronomousLinkProccessingTest {
         scheduler.update();
 
         // t
-        verify(botClient).sendUpdate(argThat(u -> u.description().contains("Ошибка при проверке ссылки: Not Found")));
+        verify(linkUpdateSender).send(argThat(u -> u.description().contains("Ошибка при проверке ссылки: Not Found")));
     }
 
     private Link createLink(String url) {

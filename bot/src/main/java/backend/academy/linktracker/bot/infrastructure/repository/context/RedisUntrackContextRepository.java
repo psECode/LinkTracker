@@ -2,7 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.repository.context;
 
 import backend.academy.linktracker.bot.domain.context.untrack.UntrackContext;
 import backend.academy.linktracker.bot.domain.context.untrack.UntrackContextRepository;
-import java.time.Duration;
+import backend.academy.linktracker.bot.properties.CacheProperties;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Repository;
 @ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "redis")
 public class RedisUntrackContextRepository implements UntrackContextRepository {
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CacheProperties cacheProperties;
     private static final String PREFIX = "bot:untrack_context:";
-    private static final Duration TTL = Duration.ofMinutes(30);
 
     @Override
     public Optional<UntrackContext> read(Long chatId) {
@@ -25,7 +25,7 @@ public class RedisUntrackContextRepository implements UntrackContextRepository {
 
     @Override
     public void save(UntrackContext context) {
-        redisTemplate.opsForValue().set(PREFIX + context.getChatId(), context, TTL);
+        redisTemplate.opsForValue().set(PREFIX + context.getChatId(), context, cacheProperties.getContextTtl());
     }
 
     @Override

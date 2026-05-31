@@ -1,6 +1,6 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.CommandType;
 import java.util.Locale;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StartCommand implements CommandInterface {
     private final MessageSource messageSource;
-    private final ScrapperClient scrapperClient;
+    private final ScrapperServiceInterface scrapperClient;
 
     @Override
     public String getMenuName() {

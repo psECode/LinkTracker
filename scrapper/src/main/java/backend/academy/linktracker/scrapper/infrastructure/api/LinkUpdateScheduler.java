@@ -10,6 +10,7 @@ import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkUpdateReport;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
+import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.LinkUpdateSender;
 import backend.academy.linktracker.scrapper.properties.SchedulerProperties;
 import java.net.URI;
 import java.util.List;
@@ -36,7 +37,7 @@ public class LinkUpdateScheduler {
     private final SchedulerProperties properties;
 
     private final LinkUpdater linkUpdater;
-    private final BotClient botClient;
+    private final LinkUpdateSender sender;
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -71,7 +72,7 @@ public class LinkUpdateScheduler {
             }
 
             if (description != null) {
-                botClient.sendUpdate(new LinkUpdate(
+                sender.send(new LinkUpdate(
                         link.getId().getMostSignificantBits(), URI.create(link.getUrl()), description, chatIds));
             }
 

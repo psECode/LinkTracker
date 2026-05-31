@@ -9,11 +9,11 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.track.TrackContextHandler;
 import backend.academy.linktracker.bot.application.context.track.usecases.DeleteTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.ReadTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
-import backend.academy.linktracker.bot.domain.api.ScrapperClient;
 import backend.academy.linktracker.bot.domain.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
 import backend.academy.linktracker.bot.domain.context.track.TrackContext;
@@ -43,7 +43,7 @@ class TrackContextHandlerTest {
     private DeleteTrackContextUseCase deleteTrackUseCase;
 
     @Mock
-    private ScrapperClient scrapperClient;
+    private ScrapperServiceInterface scrapperClient;
 
     @Mock
     private MessageSource messageSource;
