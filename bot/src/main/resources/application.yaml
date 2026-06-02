@@ -51,3 +51,20 @@ resilience4j:
         limitForPeriod: 3
         limitRefreshPeriod: 10s
         timeoutDuration: 0
+
+management:
+  server:
+    port: 8011
+  endpoints:
+    web:
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+      exposure:
+        include: prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        command_duration_ms_total: true

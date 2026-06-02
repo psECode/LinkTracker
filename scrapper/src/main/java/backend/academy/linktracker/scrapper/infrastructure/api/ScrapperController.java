@@ -10,6 +10,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.usecases.Register
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.SubscribeUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnregisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnsubscribeUserUseCase;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,20 +38,25 @@ public class ScrapperController {
     private final UnregisterUserUseCase unregisterUserUseCase;
     private final SubscriptionToLinkResponse responseMapper;
 
+    private final MeterRegistry meterRegistry;
+
     @PostMapping("/tg-chat/{id}")
     public ResponseEntity<Void> register(@PathVariable Long id) {
+        meterRegistry.counter("api_requests_total", "source", "bot").increment();
         registerUserUseCase.execute(id);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/tg-chat/{id}")
     public ResponseEntity<Void> unregister(@PathVariable Long id) {
+        meterRegistry.counter("api_requests_total", "source", "bot").increment();
         unregisterUserUseCase.execute(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/links")
     public ResponseEntity<ListLinksResponse> getLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
+        meterRegistry.counter("api_requests_total", "source", "bot").increment();
         List<SubscriptionResult> results = getUsersSubscriptionsUseCase.execute(chatId);
 
         List<LinkResponse> responses = results.stream()
@@ -63,7 +69,7 @@ public class ScrapperController {
     @PostMapping("/links")
     public ResponseEntity<LinkResponse> addLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
-
+        meterRegistry.counter("api_requests_total", "source", "bot").increment();
         SubscriptionResult res = subscribeUserUseCase.execute(chatId, request.link(), request.tags());
         return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
     }
@@ -71,7 +77,7 @@ public class ScrapperController {
     @DeleteMapping("/links")
     public ResponseEntity<LinkResponse> removeLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest request) {
-
+        meterRegistry.counter("api_requests_total", "source", "bot").increment();
         SubscriptionResult res =
                 unsubscribeUserUseCase.execute(chatId, request.link().toString());
         return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));

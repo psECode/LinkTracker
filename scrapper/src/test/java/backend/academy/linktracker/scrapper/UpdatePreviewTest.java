@@ -13,6 +13,8 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.e
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubIssueResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubUser;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,8 @@ class UpdatePreviewTest {
     @Mock
     private GithubProperties githubProperties;
 
+    MeterRegistry meterRegistry;
+
     @InjectMocks
     private GithubLinkChecker githubLinkChecker;
 
@@ -44,7 +48,11 @@ class UpdatePreviewTest {
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
+
         lenient().when(githubProperties.getIssuesPerOnce()).thenReturn(10);
+
+        githubLinkChecker = new GithubLinkChecker(githubClient, githubProperties, meterRegistry);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.repository.links.jpa;
 
+import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,4 +17,6 @@ interface LinkJpaRepositoryInterface extends JpaRepository<LinkJpaEntity, UUID> 
     List<LinkJpaEntity> findAllByIdIn(Set<UUID> ids);
 
     List<LinkJpaEntity> findAllByNextCheckAtBeforeOrderByNextCheckAtAsc(OffsetDateTime now, Pageable pageable);
+
+    long countByType(LinkType type);
 }

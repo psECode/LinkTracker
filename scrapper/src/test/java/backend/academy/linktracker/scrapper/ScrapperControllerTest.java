@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -28,8 +29,11 @@ import backend.academy.linktracker.scrapper.infrastructure.api.usecases.Subscrib
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnregisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnsubscribeUserUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.URI;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -69,6 +73,16 @@ class ScrapperControllerTest {
     private SubscriptionToLinkResponse responseMapper;
 
     private final Long chatId = 12345L;
+
+    @MockitoBean
+    private MeterRegistry meterRegistry;
+
+    @BeforeEach
+    void setUp() {
+        lenient()
+                .when(meterRegistry.counter(anyString(), any(String[].class)))
+                .thenReturn(new SimpleMeterRegistry().counter("temp"));
+    }
 
     @Test
     void registerUserTest() throws Exception {

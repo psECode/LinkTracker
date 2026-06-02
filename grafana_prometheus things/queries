@@ -1,0 +1,14 @@
+jvm_memory_used_bytes{application="$app", area="heap"}
+использование памяти
+
+links_on_track
+количества ссылок которые отслеживаем
+
+sum(command_requests_total) by (command)
+подсчет количества вызовов команд
+
+sent_notification_total
+отправленные сообщения ботом
+
+histogram_quantile(0.95, sum(rate(request_duration_ms_total_seconds_bucket{application="$app"}[5m])) by (le, scope_type))
+сколько времени занимает обработка запросов к GH и SOF

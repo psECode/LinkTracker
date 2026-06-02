@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper.infrastructure.mocks.links;
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
+import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
@@ -72,5 +73,10 @@ public class MemoryLinkRepository implements LinkRepository {
     @Override
     public void updateMetadata(UpdateDateDTO dto) {
         /* мне лень писать для моков реализацию уже */
+    }
+
+    @Override
+    public long countByType(LinkType type) {
+        return 0;
     }
 }

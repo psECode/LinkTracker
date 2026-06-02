@@ -7,6 +7,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDe
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubBaseResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -23,32 +24,39 @@ import org.springframework.stereotype.Component;
 public class GithubLinkChecker implements LinkChecker {
     private final GithubClient githubClient;
     private final GithubProperties properties;
+    private final MeterRegistry meterRegistry;
 
     @Override
     public List<UpdateDescription> checkUpdates(Link link) {
-        URI uri = URI.create(link.getUrl());
-        String[] parts = uri.getPath().substring(1).split("/");
-        String owner = parts[0];
-        String repo = parts[1];
+        var timer = meterRegistry.timer(
+                "request_duration_ms_total", "scope", "external_source", "scope_type", "github.com");
 
-        String since = link.getLastUpdated().atZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
+        return timer.record(() -> {
+            URI uri = URI.create(link.getUrl());
+            String[] parts = uri.getPath().substring(1).split("/");
+            String owner = parts[0];
+            String repo = parts[1];
 
-        var issuesTask = CompletableFuture.supplyAsync(() ->
-                githubClient.getLatestIssues(owner, repo, "all", "created", "desc", properties.getIssuesPerOnce()));
+            String since =
+                    link.getLastUpdated().atZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
-        var issueCommentsTask = CompletableFuture.supplyAsync(() ->
-                githubClient.getIssueComments(owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
+            var issuesTask = CompletableFuture.supplyAsync(() ->
+                    githubClient.getLatestIssues(owner, repo, "all", "created", "desc", properties.getIssuesPerOnce()));
 
-        var prCommentsTask = CompletableFuture.supplyAsync(() -> githubClient.getPullRequestComments(
-                owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
+            var issueCommentsTask = CompletableFuture.supplyAsync(() ->
+                    githubClient.getIssueComments(owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
 
-        return Stream.of(
-                        process(issuesTask.join(), "Issue/PR", link.getLastUpdated()),
-                        process(issueCommentsTask.join(), "Комментарий к Issue", link.getLastUpdated()),
-                        process(prCommentsTask.join(), "Комментарий к PR", link.getLastUpdated()))
-                .flatMap(List::stream)
-                .sorted(Comparator.comparing(UpdateDescription::date))
-                .toList();
+            var prCommentsTask = CompletableFuture.supplyAsync(() -> githubClient.getPullRequestComments(
+                    owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
+
+            return Stream.of(
+                            process(issuesTask.join(), "Issue/PR", link.getLastUpdated()),
+                            process(issueCommentsTask.join(), "Комментарий к Issue", link.getLastUpdated()),
+                            process(prCommentsTask.join(), "Комментарий к PR", link.getLastUpdated()))
+                    .flatMap(List::stream)
+                    .sorted(Comparator.comparing(UpdateDescription::date))
+                    .toList();
+        });
     }
 
     private List<UpdateDescription> process(

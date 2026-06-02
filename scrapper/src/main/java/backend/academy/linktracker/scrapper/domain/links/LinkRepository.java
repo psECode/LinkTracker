@@ -24,4 +24,6 @@ public interface LinkRepository {
     Optional<Link> readByUrl(String url);
 
     void updateMetadata(UpdateDateDTO dto);
+
+    long countByType(LinkType type);
 }

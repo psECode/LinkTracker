@@ -19,6 +19,8 @@ import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.domain.bot.MessageSenderService;
 import backend.academy.linktracker.bot.domain.context.ContextHandlerFactory;
 import backend.academy.linktracker.bot.domain.context.ContextType;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +57,8 @@ class DispatcherTest {
     @Mock
     private ScrapperServiceInterface scrapperClient;
 
+    private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
     private CommandDispatcher dispatcher;
     private final Long chatId = 12345L;
 
@@ -67,7 +71,12 @@ class DispatcherTest {
                 new UnknownCommand(messageSource));
 
         dispatcher = new CommandDispatcher(
-                commands, flowHandlerFactory, readActiveContext, deleteActiveContext, messageSenderService);
+                commands,
+                flowHandlerFactory,
+                readActiveContext,
+                deleteActiveContext,
+                messageSenderService,
+                meterRegistry);
     }
 
     @Test

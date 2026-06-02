@@ -1,6 +1,7 @@
 package backend.academy.linktracker.scrapper.infrastructure.repository.links.jpa;
 
 import backend.academy.linktracker.scrapper.domain.links.LinkRepository;
+import backend.academy.linktracker.scrapper.domain.links.LinkType;
 import backend.academy.linktracker.scrapper.domain.links.dtos.CreateTrackedLinkDTO;
 import backend.academy.linktracker.scrapper.domain.links.dtos.UpdateDateDTO;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
@@ -78,5 +79,10 @@ public class JpaLinkRepository implements LinkRepository {
             jpa.delete(e);
             return mapper.toDomain(e);
         });
+    }
+
+    @Override
+    public long countByType(LinkType type) {
+        return jpa.countByType(type);
     }
 }

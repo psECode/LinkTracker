@@ -90,4 +90,9 @@ public class JdbcLinkRepository implements LinkRepository {
         return jdbc.query("DELETE FROM links WHERE id = :id RETURNING *", Map.of("id", id), rowMapper).stream()
                 .findFirst();
     }
+
+    @Override
+    public long countByType(LinkType type) {
+        return jdbc.queryForObject("SELECT count(*) FROM links WHERE type = :t", Map.of("t", type.name()), Long.class);
+    }
 }

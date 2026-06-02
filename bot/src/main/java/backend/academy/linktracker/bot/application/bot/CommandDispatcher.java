@@ -9,6 +9,7 @@ import backend.academy.linktracker.bot.domain.context.ContextHandler;
 import backend.academy.linktracker.bot.domain.context.ContextHandlerFactory;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
 import backend.academy.linktracker.bot.domain.context.ContextType;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,24 +25,26 @@ public class CommandDispatcher {
     private final ReadActiveContextUseCase readActiveContext;
     private final DeleteActiveContextUseCase deleteActiveContext;
     private final MessageSenderService messageSender;
+    private final MeterRegistry meterRegistry;
 
     public CommandDispatcher(
             List<CommandInterface> commandBeans,
             ContextHandlerFactory flowHandlerFactory,
             ReadActiveContextUseCase readActiveContext,
             DeleteActiveContextUseCase deleteActiveContext,
-            MessageSenderService messageSender) {
+            MessageSenderService messageSender,
+            MeterRegistry meterRegistry) {
         this.flowHandlerFactory = flowHandlerFactory;
         this.readActiveContext = readActiveContext;
         this.deleteActiveContext = deleteActiveContext;
         this.messageSender = messageSender;
         this.commandHandlers =
                 commandBeans.stream().collect(Collectors.toMap(CommandInterface::getCommandType, c -> c));
+        this.meterRegistry = meterRegistry;
     }
 
     public void dispatch(Long chatId, String text) {
         log.info("Message from {}: {}", chatId, text);
-
         try {
             ContextType activeContext = readActiveContext.execute(chatId).orElseThrow();
 
@@ -69,6 +72,10 @@ public class CommandDispatcher {
     private void processAsCommand(Long chatId, String text) {
         CommandType type = CommandType.fromText(text);
         CommandInterface handler = commandHandlers.getOrDefault(type, commandHandlers.get(CommandType.UNKNOWN));
-        messageSender.sendText(chatId, handler.execute(chatId, text));
+        meterRegistry.counter("command_requests_total", "command", type.name()).increment();
+        var timer = meterRegistry.timer(
+                "command_duration_ms_total", "scope", "scrapper_sync_api", "scope_type", type.name());
+        String responseMessage = timer.record(() -> handler.execute(chatId, text));
+        messageSender.sendText(chatId, responseMessage);
     }
 }

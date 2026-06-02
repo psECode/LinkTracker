@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @SuppressWarnings("deprecation")
 public class TelegramMessageSender implements MessageSenderService {
-
+    private final MeterRegistry meterRegistry;
     private final TelegramBot bot;
 
     @Override
@@ -28,5 +29,6 @@ public class TelegramMessageSender implements MessageSenderService {
             log.error("Ошибка отправки: {}", response.description());
             throw new RuntimeException("Telegram API error: " + response.errorCode());
         }
+        meterRegistry.counter("sent_notification_total").increment();
     }
 }

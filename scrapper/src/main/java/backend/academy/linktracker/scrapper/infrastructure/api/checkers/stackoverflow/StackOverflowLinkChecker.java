@@ -6,6 +6,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkChec
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.UpdateDescription;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackoverflow.entities.StackOverflowBaseResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackoverflow.entities.StackOverflowClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
@@ -20,27 +21,33 @@ public class StackOverflowLinkChecker implements LinkChecker {
     private final StackOverflowClient stackOverflowClient;
     private static final String SITE = "stackoverflow";
     private static final String FILTER = "!6WPIOM79s79Y)";
+    private final MeterRegistry meterRegistry;
 
     @Override
     public List<UpdateDescription> checkUpdates(Link link) {
-        URI uri = URI.create(link.getUrl());
-        String[] segments = uri.getPath().split("/");
 
-        long questionId = Long.parseLong(segments[2]);
+        var timer = meterRegistry.timer(
+                "request_duration_ms_total", "scope", "external_source", "scope_type", "stackoverflow.com");
 
-        long fromDate = link.getLastUpdated().toEpochSecond() + 1;
+        return timer.record(() -> {
+            URI uri = URI.create(link.getUrl());
+            String[] segments = uri.getPath().split("/");
+            long questionId = Long.parseLong(segments[2]);
 
-        var answersTask =
-                CompletableFuture.supplyAsync(() -> stackOverflowClient.getAnswers(questionId, fromDate, SITE, FILTER));
-        var commentsTask = CompletableFuture.supplyAsync(
-                () -> stackOverflowClient.getComments(questionId, fromDate, SITE, FILTER));
+            long fromDate = link.getLastUpdated().toEpochSecond() + 1;
 
-        return Stream.of(
-                        processItems(answersTask.join().items(), "Новый ответ"),
-                        processItems(commentsTask.join().items(), "Новый комментарий"))
-                .flatMap(List::stream)
-                .sorted(Comparator.comparing(UpdateDescription::date))
-                .toList();
+            var answersTask = CompletableFuture.supplyAsync(
+                    () -> stackOverflowClient.getAnswers(questionId, fromDate, SITE, FILTER));
+            var commentsTask = CompletableFuture.supplyAsync(
+                    () -> stackOverflowClient.getComments(questionId, fromDate, SITE, FILTER));
+
+            return Stream.of(
+                            processItems(answersTask.join().items(), "Новый ответ"),
+                            processItems(commentsTask.join().items(), "Новый комментарий"))
+                    .flatMap(List::stream)
+                    .sorted(Comparator.comparing(UpdateDescription::date))
+                    .toList();
+        });
     }
 
     private List<UpdateDescription> processItems(List<? extends StackOverflowBaseResponse> items, String eventType) {
