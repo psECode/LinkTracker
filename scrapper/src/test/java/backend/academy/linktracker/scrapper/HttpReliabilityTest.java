@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import backend.academy.linktracker.scrapper.application.links.usecases.CreateTrackedLinkService;
 import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
@@ -18,6 +19,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.updateSenders.Lin
 import com.example.notification.RawUpdateEvent;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
@@ -71,6 +73,8 @@ class HttpReliabilityTest {
     void setUp() {
         wireMockServer.resetAll();
         circuitBreakerRegistry.circuitBreaker("botUpdateCB").reset();
+        when(kafkaTemplate.send(anyString(), any()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
     }
 
     @SneakyThrows
@@ -102,6 +106,11 @@ class HttpReliabilityTest {
         sender.send(update);
 
         // t
-        wireMockServer.verify(moreThanOrExactly(2), postRequestedFor(urlEqualTo("/updates")));
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .pollInterval(Duration.ofMillis(500))
+                .untilAsserted(() -> {
+                    wireMockServer.verify(moreThanOrExactly(2), postRequestedFor(urlEqualTo("/updates")));
+                });
     }
 }
