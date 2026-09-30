@@ -1,7 +1,7 @@
 package backend.academy.linktracker.scrapper.infrastructure.repository.users.jpa;
 
 import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
-import backend.academy.linktracker.scrapper.domain.users.dtos.CreateUserDto;
+import backend.academy.linktracker.scrapper.domain.users.dtos.CreateWebUserDto;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
@@ -18,8 +18,13 @@ public class JpaUsersRepository implements UsersRepository {
     private final UserMapper mapper;
 
     @Override
-    public Optional<User> readByChatId(Long chatId) {
-        return jpa.findByChatId(chatId).map(mapper::toDomain);
+    public Optional<User> readByTelegramId(Long telegramId) {
+        return jpa.findByTelegramId(telegramId).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<User> readByEmail(String email) {
+        return jpa.findByEmail(email).map(mapper::toDomain);
     }
 
     @Override
@@ -29,11 +34,24 @@ public class JpaUsersRepository implements UsersRepository {
 
     @Override
     @Transactional
-    public Optional<User> save(CreateUserDto dto) {
-        return jpa.findByChatId(dto.chatId()).map(mapper::toDomain).or(() -> {
-            UserJpaEntity entity = new UserJpaEntity(UUID.randomUUID(), dto.chatId(), true);
-            return Optional.of(mapper.toDomain(jpa.save(entity)));
-        });
+    public Optional<User> saveTelegramUser(Long telegramId) {
+        return jpa.findByTelegramId(telegramId)
+                .map(entity -> {
+                    entity.setIsActive(true);
+                    return mapper.toDomain(jpa.save(entity));
+                })
+                .or(() -> Optional.of(
+                        mapper.toDomain(jpa.save(new UserJpaEntity(UUID.randomUUID(), telegramId, null, null, true)))));
+    }
+
+    @Override
+    @Transactional
+    public Optional<User> saveWebUser(CreateWebUserDto dto) {
+        if (jpa.existsByEmail(dto.email())) {
+            return Optional.empty();
+        }
+        UserJpaEntity entity = new UserJpaEntity(UUID.randomUUID(), null, dto.email(), dto.passwordHash(), true);
+        return Optional.of(mapper.toDomain(jpa.save(entity)));
     }
 
     @Override

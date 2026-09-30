@@ -3,50 +3,52 @@ package backend.academy.linktracker.scrapper;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import backend.academy.linktracker.scrapper.configuration.SecurityConfig;
 import backend.academy.linktracker.scrapper.domain.links.entities.Link;
 import backend.academy.linktracker.scrapper.domain.subscriptions.entities.Subscription;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.ScrapperController;
 import backend.academy.linktracker.scrapper.infrastructure.api.SubscriptionResult;
+import backend.academy.linktracker.scrapper.infrastructure.api.auth.JwtAuthenticationEntryPoint;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.AddLinkRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.RemoveLinkRequest;
-import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import backend.academy.linktracker.scrapper.infrastructure.api.mappers.SubscriptionToLinkResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.GetUsersSubscriptionsUseCase;
-import backend.academy.linktracker.scrapper.infrastructure.api.usecases.RegisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.SubscribeUserUseCase;
-import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnregisterUserUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.usecases.UnsubscribeUserUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ScrapperController.class)
-@Import(com.fasterxml.jackson.databind.ObjectMapper.class)
+@Import({ObjectMapper.class, SecurityConfig.class, JwtAuthenticationEntryPoint.class})
 @ActiveProfiles("test")
 class ScrapperControllerTest {
+
+    private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @Autowired
     private MockMvc mockMvc;
@@ -64,15 +66,7 @@ class ScrapperControllerTest {
     private GetUsersSubscriptionsUseCase getSubscriptionsUseCase;
 
     @MockitoBean
-    private RegisterUserUseCase registerUserUseCase;
-
-    @MockitoBean
-    private UnregisterUserUseCase unregisterUserUseCase;
-
-    @MockitoBean
     private SubscriptionToLinkResponse responseMapper;
-
-    private final Long chatId = 12345L;
 
     @MockitoBean
     private MeterRegistry meterRegistry;
@@ -84,18 +78,8 @@ class ScrapperControllerTest {
                 .thenReturn(new SimpleMeterRegistry().counter("temp"));
     }
 
-    @Test
-    void registerUserTest() throws Exception {
-        mockMvc.perform(post("/tg-chat/{id}", chatId)).andExpect(status().isOk());
-
-        verify(registerUserUseCase).execute(chatId);
-    }
-
-    @Test
-    void unregisterUserTest() throws Exception {
-        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isOk());
-
-        verify(unregisterUserUseCase).execute(chatId);
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor auth() {
+        return jwt().jwt(j -> j.subject(USER_ID.toString()));
     }
 
     @Test
@@ -103,17 +87,22 @@ class ScrapperControllerTest {
         SubscriptionResult result = new SubscriptionResult(
                 Subscription.builder().build(),
                 Link.builder().url("https://github.com").build(),
-                User.builder().chatId(chatId).build());
+                User.builder().id(USER_ID).build());
 
-        when(getSubscriptionsUseCase.execute(chatId)).thenReturn(List.of(result));
+        when(getSubscriptionsUseCase.execute(USER_ID)).thenReturn(List.of(result));
         when(responseMapper.map(any(), any(), any()))
-                .thenReturn(new LinkResponse(chatId, URI.create("https://github.com"), List.of()));
+                .thenReturn(new LinkResponse(USER_ID, URI.create("https://github.com"), List.of()));
 
-        mockMvc.perform(get("/links").header("Tg-Chat-Id", chatId))
+        mockMvc.perform(get("/api/links").with(auth()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.links").isArray())
                 .andExpect(jsonPath("$.size").value(1))
                 .andExpect(jsonPath("$.links[0].url").value("https://github.com"));
+    }
+
+    @Test
+    void getLinksUnauthorizedTest() throws Exception {
+        mockMvc.perform(get("/api/links")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -122,15 +111,14 @@ class ScrapperControllerTest {
         SubscriptionResult result = new SubscriptionResult(
                 Subscription.builder().build(),
                 Link.builder().url(request.link().toString()).build(),
-                User.builder().chatId(chatId).build());
+                User.builder().id(USER_ID).build());
 
-        when(subscribeUseCase.execute(eq(chatId), eq(request.link()), any())).thenReturn(result);
-
+        when(subscribeUseCase.execute(eq(USER_ID), eq(request.link()), any())).thenReturn(result);
         when(responseMapper.map(any(), any(), any()))
-                .thenReturn(new LinkResponse(chatId, request.link(), request.tags()));
+                .thenReturn(new LinkResponse(USER_ID, request.link(), request.tags()));
 
-        mockMvc.perform(post("/links")
-                        .header("Tg-Chat-Id", chatId)
+        mockMvc.perform(post("/api/links")
+                        .with(auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -143,24 +131,16 @@ class ScrapperControllerTest {
         SubscriptionResult result = new SubscriptionResult(
                 Subscription.builder().build(),
                 Link.builder().url(request.link().toString()).build(),
-                User.builder().chatId(chatId).build());
+                User.builder().id(USER_ID).build());
 
-        when(unsubscribeUseCase.execute(eq(chatId), anyString())).thenReturn(result);
+        when(unsubscribeUseCase.execute(eq(USER_ID), anyString())).thenReturn(result);
+        when(responseMapper.map(any(), any(), any())).thenReturn(new LinkResponse(USER_ID, request.link(), List.of()));
 
-        when(responseMapper.map(any(), any(), any())).thenReturn(new LinkResponse(chatId, request.link(), List.of()));
-
-        mockMvc.perform(delete("/links")
-                        .header("Tg-Chat-Id", chatId)
+        mockMvc.perform(delete("/api/links")
+                        .with(auth())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value(request.link().toString()));
-    }
-
-    @Test
-    void deleteNonExistentUserTest() throws Exception {
-        doThrow(new UserNotFoundException(chatId)).when(unregisterUserUseCase).execute(chatId);
-
-        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isNotFound());
     }
 }

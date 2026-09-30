@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StackOverflowLinkChecker implements LinkChecker {
@@ -41,12 +43,25 @@ public class StackOverflowLinkChecker implements LinkChecker {
             var commentsTask = CompletableFuture.supplyAsync(
                     () -> stackOverflowClient.getComments(questionId, fromDate, SITE, FILTER));
 
-            return Stream.of(
-                            processItems(answersTask.join().items(), "Новый ответ"),
-                            processItems(commentsTask.join().items(), "Новый комментарий"))
+            var answers = answersTask.join().items();
+            var comments = commentsTask.join().items();
+
+            List<UpdateDescription> updates = Stream.of(
+                            processItems(answers, "Новый ответ"),
+                            processItems(comments, "Новый комментарий"))
                     .flatMap(List::stream)
                     .sorted(Comparator.comparing(UpdateDescription::date))
                     .toList();
+
+            log.info(
+                    "StackOverflow вопрос {}: fromDate={}, получено: ответов={}, комментариев={}, обновлений={}",
+                    questionId,
+                    fromDate,
+                    answers.size(),
+                    comments.size(),
+                    updates.size());
+
+            return updates;
         });
     }
 

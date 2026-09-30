@@ -1,15 +1,18 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:17-alpine
     container_name: scrapper_db
     environment:
-      POSTGRES_DB: scrapper
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-scrapper}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scrapper"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: valkey/valkey:8.0-alpine
@@ -59,6 +62,7 @@ services:
     depends_on:
       - kafka
       - schema-registry
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -79,3 +83,80 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
+
+  scrapper:
+    build:
+      context: .
+      dockerfile: scrapper/Dockerfile
+    container_name: scrapper
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-scrapper}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      APP_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      APP_KAFKA_SCHEMAREGISTRYURL: http://schema-registry:8081
+      APP_BOT_URL: http://bot:8080
+      APP_BOT_INTERNALTOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      APP_JWT_SECRET: ${JWT_SECRET:-dev-only-secret-0123456789abcdef-0123456789}
+      APP_INTERNALTOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      APP_GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      APP_STACKOVERFLOW_KEY: ${STACKOVERFLOW_KEY:-}
+      APP_STACKOVERFLOW_ACCESSTOKEN: ${STACKOVERFLOW_ACCESS_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      schema-registry:
+        condition: service_started
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    container_name: bot
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN:-}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      APP_KAFKA_SCHEMAREGISTRYURL: http://schema-registry:8081
+      SPRING_DATA_REDIS_HOST: redis
+      APP_INTERNALTOKEN: ${INTERNAL_API_TOKEN:-dev-internal-token}
+      APP_SCRAPPER_URL: http://scrapper:8081
+    depends_on:
+      - scrapper
+      - kafka
+      - redis
+
+  ai-agent:
+    build:
+      context: .
+      dockerfile: ai-agent/Dockerfile
+    container_name: ai-agent
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      APP_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+      APP_KAFKA_SCHEMAREGISTRYURL: http://schema-registry:8081
+    depends_on:
+      - kafka
+      - schema-registry
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - scrapper

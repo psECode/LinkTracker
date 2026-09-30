@@ -8,6 +8,7 @@ import com.example.notification.RawUpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,12 @@ public class OutboxProcessor {
                         .setDescription(dto.description())
                         .setAuthor(dto.author() != null ? dto.author() : "unknown")
                         .setTgChatIds(dto.tgChatIds())
+                        .setUserIds(
+                                dto.userIds() == null
+                                        ? List.of()
+                                        : dto.userIds().stream()
+                                                .map(UUID::toString)
+                                                .toList())
                         .build();
 
                 kafkaTemplate.send(topicName, event).get();

@@ -39,6 +39,7 @@ public class ClientConfiguration {
         RestClient restClient = RestClient.builder()
                 .baseUrl(botProperties.getUrl())
                 .requestFactory(factory)
+                .defaultHeader("X-Internal-Token", botProperties.getInternalToken())
                 .build();
 
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
@@ -48,13 +49,15 @@ public class ClientConfiguration {
 
     @Bean
     public GithubClient githubClient(@Value("${app.github.url:https://api.github.com}") String baseUrl) {
-        RestClient restClient = RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .baseUrl(baseUrl)
-                .defaultHeader("User-Agent", "LinkTrackerBot")
-                .defaultHeader("Authorization", "Bearer " + githubProperties.getToken())
-                .build();
+                .defaultHeader("User-Agent", "LinkTrackerBot");
 
-        return createClient(GithubClient.class, restClient);
+        if (githubProperties.getToken() != null && !githubProperties.getToken().isBlank()) {
+            builder.defaultHeader("Authorization", "Bearer " + githubProperties.getToken());
+        }
+
+        return createClient(GithubClient.class, builder.build());
     }
 
     @Bean

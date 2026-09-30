@@ -12,6 +12,7 @@ import backend.academy.linktracker.bot.domain.api.dtos.LinkResponse;
 import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,8 +34,10 @@ class ListCommandTest {
 
     @Test
     void happyList() {
-        var link1 = new LinkResponse(1L, URI.create("https://1"), List.of("java"));
-        var link2 = new LinkResponse(2L, URI.create("https://2"), List.of("петухон"));
+        var link1 = new LinkResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), URI.create("https://1"), List.of("java"));
+        var link2 = new LinkResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000002"), URI.create("https://2"), List.of("петухон"));
 
         when(scrapperClient.getAllLinks(anyLong())).thenReturn(new ListLinksResponse(List.of(link1, link2), 2));
 
@@ -57,8 +60,10 @@ class ListCommandTest {
 
     @Test
     void tagList() {
-        var link1 = new LinkResponse(1L, URI.create("https://1"), List.of("java"));
-        var link2 = new LinkResponse(2L, URI.create("https://2"), List.of("петухон"));
+        var link1 = new LinkResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), URI.create("https://1"), List.of("java"));
+        var link2 = new LinkResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000002"), URI.create("https://2"), List.of("петухон"));
 
         when(scrapperClient.getAllLinks(anyLong())).thenReturn(new ListLinksResponse(List.of(link1, link2), 2));
 

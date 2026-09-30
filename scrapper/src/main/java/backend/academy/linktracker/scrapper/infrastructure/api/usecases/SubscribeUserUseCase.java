@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -34,8 +35,8 @@ public class SubscribeUserUseCase {
     private final SchedulerProperties properties;
 
     @Transactional
-    public SubscriptionResult execute(Long chatId, URI url, List<String> tags) {
-        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
+    public SubscriptionResult execute(UUID userId, URI url, List<String> tags) {
+        User user = readUserService.readByUUID(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         LinkType type =
                 LinkType.of(url.toString()).orElseThrow(() -> new InvalidLinkException("Сервис не поддерживается"));

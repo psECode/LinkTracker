@@ -17,4 +17,5 @@ import org.springframework.validation.annotation.Validated;
 public class BotProperties {
     String url;
     Duration timeout;
+    String internalToken;
 }

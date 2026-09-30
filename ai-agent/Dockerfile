@@ -1,0 +1,36 @@
+FROM eclipse-temurin:25-jdk-alpine AS builder
+
+RUN apk add --no-cache curl tar bash
+
+ARG MAVEN_VERSION=3.9.12
+ARG BASE_URL=https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries
+
+RUN mkdir -p /usr/share/maven \
+ && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+ && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
+ && rm -f /tmp/apache-maven.tar.gz \
+ && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+
+ENV MAVEN_HOME=/usr/share/maven
+WORKDIR /app
+
+COPY pom.xml .
+COPY scrapper/pom.xml ./scrapper/
+COPY bot/pom.xml ./bot/
+COPY ai-agent/pom.xml ./ai-agent/
+COPY avro-schemas/pom.xml ./avro-schemas/
+COPY avro-schemas/src ./avro-schemas/src
+COPY local-repo ./local-repo
+
+RUN mvn -pl ai-agent -am dependency:go-offline -B
+
+COPY ai-agent/src ./ai-agent/src
+RUN mvn -pl ai-agent -am clean package -DskipTests
+
+FROM eclipse-temurin:25-jre-alpine
+WORKDIR /app
+
+COPY --from=builder /app/ai-agent/target/*.jar app.jar
+
+EXPOSE 8082
+ENTRYPOINT ["java", "-jar", "app.jar"]

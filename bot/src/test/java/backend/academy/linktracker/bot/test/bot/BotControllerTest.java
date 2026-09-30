@@ -22,6 +22,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(com.fasterxml.jackson.databind.ObjectMapper.class)
 class BotControllerTest {
 
+    private static final String INTERNAL_TOKEN = "dev-internal-token";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -36,10 +38,21 @@ class BotControllerTest {
         LinkUpdate update = new LinkUpdate(1L, "abracadabra", "MEDIUM", List.of(123L));
 
         mockMvc.perform(post("/updates")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isOk());
 
         verify(processUpdateUseCase).execute(any());
+    }
+
+    @Test
+    void sendUpdateWithoutInternalTokenUnauthorized() throws Exception {
+        LinkUpdate update = new LinkUpdate(1L, "abracadabra", "MEDIUM", List.of(123L));
+
+        mockMvc.perform(post("/updates")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(update)))
+                .andExpect(status().isUnauthorized());
     }
 }

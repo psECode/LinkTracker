@@ -1,10 +1,12 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.ApiErrorResponse;
+import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidCredentialsException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidLinkException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkAlreadyTrackedException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkNotFoundException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.SubscriptionNotFoundException;
+import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserAlreadyExistsException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import java.util.Arrays;
 import java.util.List;
@@ -21,9 +23,14 @@ public class ScrapperExceptionHandler {
         return buildResponse(ex, HttpStatus.NOT_FOUND, "Запрашиваемый ресурс не найден");
     }
 
-    @ExceptionHandler(LinkAlreadyTrackedException.class)
+    @ExceptionHandler({LinkAlreadyTrackedException.class, UserAlreadyExistsException.class})
     public ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException ex) {
         return buildResponse(ex, HttpStatus.CONFLICT, "Ресурс уже существует");
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return buildResponse(ex, HttpStatus.UNAUTHORIZED, "Ошибка аутентификации");
     }
 
     @ExceptionHandler({IllegalArgumentException.class, InvalidLinkException.class})

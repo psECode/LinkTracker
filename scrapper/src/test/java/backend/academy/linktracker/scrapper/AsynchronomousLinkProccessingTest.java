@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
 import backend.academy.linktracker.scrapper.application.links.usecases.UpdateTrackedLinkTimeUseCase;
+import backend.academy.linktracker.scrapper.application.notifications.usecases.SaveNotificationsUseCase;
 import backend.academy.linktracker.scrapper.application.subscriptions.usecases.ReadUsersUuidsByLinkIdUseCase;
 import backend.academy.linktracker.scrapper.application.users.usecases.ReadUserService;
 import backend.academy.linktracker.scrapper.domain.links.LinkType;
@@ -52,6 +53,9 @@ public class AsynchronomousLinkProccessingTest {
     private ReadUserService readUserService;
 
     @Mock
+    private SaveNotificationsUseCase saveNotificationsUseCase;
+
+    @Mock
     private SchedulerProperties properties;
 
     @Mock
@@ -75,7 +79,7 @@ public class AsynchronomousLinkProccessingTest {
 
         when(readUsersUuidsByLinkIdUseCase.execute(any())).thenReturn(List.of(UUID.randomUUID()));
         when(readUserService.readByUUID(any()))
-                .thenReturn(Optional.of(User.builder().chatId(1L).build()));
+                .thenReturn(Optional.of(User.builder().telegramId(1L).build()));
 
         Set<String> threadNames = ConcurrentHashMap.newKeySet();
 
@@ -105,7 +109,7 @@ public class AsynchronomousLinkProccessingTest {
         List<UUID> uuids = List.of(UUID.randomUUID());
         when(readUsersUuidsByLinkIdUseCase.execute(any())).thenReturn(uuids);
         when(readUserService.readByUUID(any()))
-                .thenReturn(Optional.of(User.builder().chatId(1L).build()));
+                .thenReturn(Optional.of(User.builder().telegramId(1L).build()));
 
         when(linkUpdater.process(badLink)).thenThrow(new RuntimeException("API Fatal Error"));
 
@@ -139,7 +143,7 @@ public class AsynchronomousLinkProccessingTest {
 
         when(readUsersUuidsByLinkIdUseCase.execute(any())).thenReturn(List.of(UUID.randomUUID()));
         when(readUserService.readByUUID(any()))
-                .thenReturn(Optional.of(User.builder().chatId(123L).build()));
+                .thenReturn(Optional.of(User.builder().telegramId(123L).build()));
 
         LinkUpdateReport errorReport = new LinkUpdateReport(link, List.of(), "Not Found");
         when(linkUpdater.process(link)).thenReturn(errorReport);

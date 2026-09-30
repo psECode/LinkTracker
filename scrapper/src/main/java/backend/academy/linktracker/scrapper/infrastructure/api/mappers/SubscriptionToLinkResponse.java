@@ -15,6 +15,6 @@ public class SubscriptionToLinkResponse {
             throw new IllegalArgumentException("чево вы сюда прислали вообще");
         }
 
-        return new LinkResponse(user.getChatId(), URI.create(link.getUrl()), subscription.getTags());
+        return new LinkResponse(user.getId(), URI.create(link.getUrl()), subscription.getTags());
     }
 }

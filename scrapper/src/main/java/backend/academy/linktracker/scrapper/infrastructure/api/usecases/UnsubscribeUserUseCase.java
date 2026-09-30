@@ -13,6 +13,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkNotFou
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.SubscriptionNotFoundException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
 import jakarta.transaction.Transactional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,14 +27,14 @@ public class UnsubscribeUserUseCase {
     private final DeleteSubscriptionUseCase deleteSubscriptionUseCase;
 
     @Transactional
-    public SubscriptionResult execute(Long chatId, String url) {
-        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
+    public SubscriptionResult execute(UUID userId, String url) {
+        User user = readUserService.readByUUID(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         Link link = readTrackedLinkService.readByUrl(url).orElseThrow(() -> new LinkNotFoundException(url));
 
         var readDto = new ReadSubscriptionDTO(user.getId(), link.getId());
         Subscription sub =
-                readSubscriptionService.read(readDto).orElseThrow(() -> new SubscriptionNotFoundException(chatId, url));
+                readSubscriptionService.read(readDto).orElseThrow(() -> new SubscriptionNotFoundException(url));
 
         deleteSubscriptionUseCase.execute(sub.getId());
 

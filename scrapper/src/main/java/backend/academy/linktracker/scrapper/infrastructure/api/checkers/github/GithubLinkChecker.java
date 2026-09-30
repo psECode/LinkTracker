@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GithubLinkChecker implements LinkChecker {
@@ -49,13 +51,29 @@ public class GithubLinkChecker implements LinkChecker {
             var prCommentsTask = CompletableFuture.supplyAsync(() -> githubClient.getPullRequestComments(
                     owner, repo, "all", "created", since, properties.getIssuesPerOnce()));
 
-            return Stream.of(
-                            process(issuesTask.join(), "Issue/PR", link.getLastUpdated()),
-                            process(issueCommentsTask.join(), "Комментарий к Issue", link.getLastUpdated()),
-                            process(prCommentsTask.join(), "Комментарий к PR", link.getLastUpdated()))
+            var issues = issuesTask.join();
+            var issueComments = issueCommentsTask.join();
+            var prComments = prCommentsTask.join();
+
+            List<UpdateDescription> updates = Stream.of(
+                            process(issues, "Issue/PR", link.getLastUpdated()),
+                            process(issueComments, "Комментарий к Issue", link.getLastUpdated()),
+                            process(prComments, "Комментарий к PR", link.getLastUpdated()))
                     .flatMap(List::stream)
                     .sorted(Comparator.comparing(UpdateDescription::date))
                     .toList();
+
+            log.info(
+                    "GitHub {}/{}: since={}, получено: issues={}, комм. к issues={}, комм. к PR={}, обновлений после фильтра={}",
+                    owner,
+                    repo,
+                    since,
+                    issues.size(),
+                    issueComments.size(),
+                    prComments.size(),
+                    updates.size());
+
+            return updates;
         });
     }
 

@@ -87,7 +87,7 @@ class KafkaProducerTest {
 
         try (KafkaConsumer<String, RawUpdateEvent> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(Collections.singletonList(kafkaProperties.getTopicName()));
-            LinkUpdate update = new LinkUpdate(1L, "Desc", "author", List.of(123L));
+            LinkUpdate update = new LinkUpdate(1L, "Desc", "author", List.of(123L), List.of());
             kafkaSender.send(update);
             outboxProcessor.process();
             RawUpdateEvent receivedEvent = null;

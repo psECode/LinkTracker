@@ -13,15 +13,15 @@ import org.springframework.web.service.annotation.PostExchange;
 
 public interface ScrapperClient {
 
-    @PostExchange("/tg-chat/{id}")
+    @PostExchange("/internal/tg-chat/{id}")
     void registerChat(@PathVariable("id") Long id);
 
-    @GetExchange("/links")
+    @GetExchange("/internal/links")
     ListLinksResponse getAllLinks(@RequestHeader("Tg-Chat-Id") Long chatId);
 
-    @PostExchange("/links")
+    @PostExchange("/internal/links")
     LinkResponse addLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request);
 
-    @DeleteExchange("/links")
+    @DeleteExchange("/internal/links")
     LinkResponse removeLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody RemoveLinkRequest request);
 }

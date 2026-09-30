@@ -18,8 +18,8 @@ public class ReadSubscriptionService {
         return subscriptionRepository.read(dto);
     }
 
-    public List<Subscription> readByUserUUID(UUID chatId) {
-        return subscriptionRepository.readByUser(chatId);
+    public List<Subscription> readByUserUUID(UUID userId) {
+        return subscriptionRepository.readByUser(userId);
     }
 
     public List<Subscription> readByLinkUUID(UUID linkId) {

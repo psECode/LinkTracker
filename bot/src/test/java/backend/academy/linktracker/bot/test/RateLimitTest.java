@@ -42,13 +42,17 @@ class RateLimitTest {
         int limit = 2;
         for (int i = 0; i < limit; i++) {
             mockMvc.perform(post("/updates")
+                            .header("X-Internal-Token", "dev-internal-token")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(json))
                     .andExpect(status().isOk());
         }
 
         // t
-        mockMvc.perform(post("/updates").contentType(MediaType.APPLICATION_JSON).content(json))
+        mockMvc.perform(post("/updates")
+                        .header("X-Internal-Token", "dev-internal-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andExpect(status().isTooManyRequests());
     }
 }

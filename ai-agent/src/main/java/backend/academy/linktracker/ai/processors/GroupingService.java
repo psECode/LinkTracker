@@ -68,6 +68,7 @@ public class GroupingService {
                 .setId(updates.get(0).getId())
                 .setDescription(sb.toString().trim())
                 .setTgChatIds(chatIds)
+                .setUserIds(updates.get(0).getUserIds())
                 .setPriority(maxPriority)
                 .build();
     }

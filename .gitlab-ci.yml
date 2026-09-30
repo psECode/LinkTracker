@@ -27,6 +27,22 @@ build:
   tags:
     - dind
 
+frontend-build:
+  stage: build
+  image: "${GITLAB_DOCKER_PROXY}/node:22-alpine"
+  variables:
+    npm_config_cache: "$CI_PROJECT_DIR/frontend/.npm"
+  cache:
+    key: "frontend-cache-$CI_PROJECT_ID"
+    paths:
+      - frontend/.npm/
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  tags:
+    - dind
+
 lint:
   stage: lint
   needs:

@@ -29,6 +29,7 @@ public class TelegramMessageSender implements MessageSenderService {
             log.error("Ошибка отправки: {}", response.description());
             throw new RuntimeException("Telegram API error: " + response.errorCode());
         }
+        log.info("Сообщение отправлено в Telegram chatId={}", chatId);
         meterRegistry.counter("sent_notification_total").increment();
     }
 }

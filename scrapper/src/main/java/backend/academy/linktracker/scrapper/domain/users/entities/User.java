@@ -12,6 +12,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class User {
     private final UUID id;
-    private final Long chatId;
+
+    private final Long telegramId;
+
+    private final String email;
+
+    private final String passwordHash;
+
     private Boolean isActive;
 }

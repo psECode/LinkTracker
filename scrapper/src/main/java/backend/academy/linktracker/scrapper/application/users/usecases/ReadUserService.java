@@ -12,8 +12,12 @@ import org.springframework.stereotype.Component;
 public class ReadUserService {
     private final UsersRepository usersRepository;
 
-    public Optional<User> readByChatId(Long chatId) {
-        return usersRepository.readByChatId(chatId);
+    public Optional<User> readByTelegramId(Long telegramId) {
+        return usersRepository.readByTelegramId(telegramId);
+    }
+
+    public Optional<User> readByEmail(String email) {
+        return usersRepository.readByEmail(email);
     }
 
     public Optional<User> readByUUID(UUID uuid) {

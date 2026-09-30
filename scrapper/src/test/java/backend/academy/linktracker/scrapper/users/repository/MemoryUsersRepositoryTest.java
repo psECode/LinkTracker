@@ -2,7 +2,7 @@ package backend.academy.linktracker.scrapper.users.repository;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import backend.academy.linktracker.scrapper.domain.users.dtos.CreateUserDto;
+import backend.academy.linktracker.scrapper.domain.users.dtos.CreateWebUserDto;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.mocks.users.MemoryUsersRepository;
 import java.util.Optional;
@@ -20,36 +20,38 @@ class MemoryUsersRepositoryTest {
     }
 
     @Test
-    void createTest() {
-        Optional<User> saved = createSimpleUser(repository, 12345L);
+    void createTelegramUserTest() {
+        Optional<User> saved = repository.saveTelegramUser(12345L);
 
-        Optional<User> found = repository.readByChatId(12345L);
+        Optional<User> found = repository.readByTelegramId(12345L);
 
         assertThat(found).isPresent();
         assertThat(found.equals(saved));
     }
 
     @Test
-    void alreadyExistsTest() {
-        Optional<User> first = createSimpleUser(repository, 12345L);
-        Optional<User> user = createSimpleUser(repository, 12345L);
-        assertThat(user).isEmpty();
+    void upsertTelegramUserKeepsSameIdTest() {
+        Optional<User> first = repository.saveTelegramUser(12345L);
+        Optional<User> second = repository.saveTelegramUser(12345L);
+
+        assertThat(second).isPresent();
+        assertThat(second.get().getId()).isEqualTo(first.get().getId());
     }
 
     @Test
     void readByUUIDTest() {
-        User user = createSimpleUser(repository, 111L).get();
+        User user = repository.saveTelegramUser(111L).get();
         UUID uuid = user.getId();
 
         Optional<User> found = repository.readByUUID(uuid);
 
         assertThat(found).isPresent();
-        assertThat(found.get().getChatId()).isEqualTo(111L);
+        assertThat(found.get().getTelegramId()).isEqualTo(111L);
     }
 
     @Test
     void deleteTest() {
-        User user = createSimpleUser(repository, 999L).get();
+        User user = repository.saveTelegramUser(999L).get();
         UUID uuid = user.getId();
 
         Optional<User> deleted = repository.delete(uuid);
@@ -58,8 +60,21 @@ class MemoryUsersRepositoryTest {
         assertThat(repository.readByUUID(uuid)).isEmpty();
     }
 
-    public Optional<User> createSimpleUser(MemoryUsersRepository repository, Long chatId) {
-        CreateUserDto dto = new CreateUserDto(chatId);
-        return repository.save(dto);
+    @Test
+    void saveWebUserTest() {
+        Optional<User> saved = repository.saveWebUser(new CreateWebUserDto("user@example.com", "hash"));
+
+        assertThat(saved).isPresent();
+        assertThat(saved.get().getEmail()).isEqualTo("user@example.com");
+        assertThat(repository.readByEmail("user@example.com")).isPresent();
+    }
+
+    @Test
+    void duplicateEmailTest() {
+        repository.saveWebUser(new CreateWebUserDto("user@example.com", "hash"));
+
+        Optional<User> second = repository.saveWebUser(new CreateWebUserDto("user@example.com", "hash2"));
+
+        assertThat(second).isEmpty();
     }
 }

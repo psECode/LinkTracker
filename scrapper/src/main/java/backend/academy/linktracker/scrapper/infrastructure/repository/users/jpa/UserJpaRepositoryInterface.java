@@ -5,7 +5,11 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserJpaRepositoryInterface extends JpaRepository<UserJpaEntity, UUID> {
-    Optional<UserJpaEntity> findByChatId(Long chatId);
+    Optional<UserJpaEntity> findByTelegramId(Long telegramId);
 
-    boolean existsByChatId(Long chatId);
+    Optional<UserJpaEntity> findByEmail(String email);
+
+    boolean existsByTelegramId(Long telegramId);
+
+    boolean existsByEmail(String email);
 }

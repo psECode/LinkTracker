@@ -34,7 +34,7 @@ public class TestcontainersConfiguration {
         System.setProperty("wiremock.server.baseUrl", wiremockUrl);
 
         System.setProperty("spring.kafka.bootstrap-servers", KAFKA.getBootstrapServers());
-        System.setProperty("spring.kafka.properties.schema.registry.url", "mock://http://localhost:8081");
+        System.setProperty("app.kafka.schema-registry-url", "mock://http://localhost:8081");
         System.setProperty("app.kafka.topic-name", "link_updates");
         System.setProperty("app.use-queue", "true");
     }

@@ -83,7 +83,7 @@ class HttpReliabilityTest {
         // g
         wireMockServer.stubFor(
                 post(urlEqualTo("/updates")).willReturn(aResponse().withStatus(500)));
-        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L));
+        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L), List.of());
 
         // w
         sender.send(update);
@@ -100,7 +100,7 @@ class HttpReliabilityTest {
         // g
         wireMockServer.stubFor(post(urlEqualTo("/updates"))
                 .willReturn(aResponse().withStatus(500).withHeader("Content-Type", "application/json")));
-        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L));
+        LinkUpdate update = new LinkUpdate(1L, "desc", "author", List.of(1L), List.of());
 
         // w
         sender.send(update);

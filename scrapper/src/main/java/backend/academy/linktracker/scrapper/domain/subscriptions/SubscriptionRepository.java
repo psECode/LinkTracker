@@ -13,7 +13,7 @@ public interface SubscriptionRepository {
 
     Optional<Subscription> read(ReadSubscriptionDTO dto);
 
-    List<Subscription> readByUser(UUID chatId);
+    List<Subscription> readByUser(UUID userId);
 
     List<Subscription> readByLink(UUID linkId);
 

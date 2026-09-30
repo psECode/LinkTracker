@@ -24,6 +24,7 @@ import backend.academy.linktracker.bot.domain.api.dtos.ListLinksResponse;
 import backend.academy.linktracker.bot.domain.context.ContextType;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -150,7 +151,8 @@ class CommandsTest {
 
     @Test
     void startUntrackContext() {
-        var link = new LinkResponse(1L, URI.create("http://gh.com"), List.of());
+        var link = new LinkResponse(
+                UUID.fromString("00000000-0000-0000-0000-000000000001"), URI.create("http://gh.com"), List.of());
         when(scrapperClient.getAllLinks(chatId)).thenReturn(new ListLinksResponse(List.of(link), 1));
         when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Response");
 

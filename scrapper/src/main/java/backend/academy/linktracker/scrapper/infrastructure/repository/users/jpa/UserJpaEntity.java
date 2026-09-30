@@ -20,8 +20,14 @@ public class UserJpaEntity {
     @Id
     private UUID id;
 
-    @Column(name = "telegram_id", unique = true, nullable = false)
-    private Long chatId;
+    @Column(name = "telegram_id", unique = true)
+    private Long telegramId;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(name = "password_hash")
+    private String passwordHash;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;

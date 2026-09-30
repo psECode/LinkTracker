@@ -1,18 +1,16 @@
 package backend.academy.linktracker.scrapper.application.users.usecases;
 
 import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
-import backend.academy.linktracker.scrapper.domain.users.dtos.CreateUserDto;
-import backend.academy.linktracker.scrapper.domain.users.entities.User;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CreateUserUseCase {
+public class RegisterTelegramUserUseCase {
+
     private final UsersRepository usersRepository;
 
-    public Optional<User> execute(CreateUserDto dto) {
-        return usersRepository.save(dto);
+    public void execute(Long telegramId) {
+        usersRepository.saveTelegramUser(telegramId);
     }
 }

@@ -44,6 +44,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 public abstract class SubscriptionIntegrationTest {
 
+    protected static final String INTERNAL_TOKEN = "test-internal-token";
+
     @Autowired
     protected MockMvc mockMvc;
 
@@ -83,19 +85,21 @@ public abstract class SubscriptionIntegrationTest {
         URI url = URI.create("https://stackoverflow.com/questions/1");
         List<String> tags = List.of("java", "good");
 
-        mockMvc.perform(post("/tg-chat/{id}", chatId)).andExpect(status().isOk());
+        mockMvc.perform(post("/internal/tg-chat/{id}", chatId).header("X-Internal-Token", INTERNAL_TOKEN))
+                .andExpect(status().isOk());
 
         AddLinkRequest request = new AddLinkRequest(url, tags);
 
         // w
-        mockMvc.perform(post("/links")
+        mockMvc.perform(post("/internal/links")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
                         .header("Tg-Chat-Id", chatId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         // t
-        var user = userRepository.readByChatId(chatId).orElseThrow();
+        var user = userRepository.readByTelegramId(chatId).orElseThrow();
 
         var link = linkRepository.readByUrl(url.toString()).orElseThrow();
         assertThat(link.getUrl()).isEqualTo(url.toString());
@@ -119,14 +123,15 @@ public abstract class SubscriptionIntegrationTest {
         RemoveLinkRequest removeRequest = new RemoveLinkRequest(URI.create(url));
 
         // w
-        mockMvc.perform(delete("/links")
+        mockMvc.perform(delete("/internal/links")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
                         .header("Tg-Chat-Id", chatId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(removeRequest)))
                 .andExpect(status().isOk());
 
         // t
-        var user = userRepository.readByChatId(chatId).orElseThrow();
+        var user = userRepository.readByTelegramId(chatId).orElseThrow();
         var link = linkRepository.readByUrl(url).orElseThrow();
 
         assertThat(subscriptionRepository.read(new ReadSubscriptionDTO(user.getId(), link.getId())))
@@ -142,7 +147,9 @@ public abstract class SubscriptionIntegrationTest {
         setupUserAndSubscription(chatId, url, tags);
 
         // w & t
-        mockMvc.perform(get("/links").header("Tg-Chat-Id", chatId))
+        mockMvc.perform(get("/internal/links")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
+                        .header("Tg-Chat-Id", chatId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.links[0].url").value(url))
                 .andExpect(jsonPath("$.links[0].tags").isArray())
@@ -155,13 +162,14 @@ public abstract class SubscriptionIntegrationTest {
         // g
         Long chatId = 333L;
         setupUserAndSubscription(chatId, "https://github.com/1", List.of("t1"));
-        User user = userRepository.readByChatId(chatId).orElseThrow();
+        User user = userRepository.readByTelegramId(chatId).orElseThrow();
 
         // w
-        mockMvc.perform(delete("/tg-chat/{id}", chatId)).andExpect(status().isOk());
+        mockMvc.perform(delete("/internal/tg-chat/{id}", chatId).header("X-Internal-Token", INTERNAL_TOKEN))
+                .andExpect(status().isOk());
 
         // t
-        assertThat(userRepository.readByChatId(chatId)).isEmpty();
+        assertThat(userRepository.readByTelegramId(chatId)).isEmpty();
         assertThat(subscriptionRepository.readByUser(user.getId())).isEmpty();
     }
 
@@ -170,7 +178,8 @@ public abstract class SubscriptionIntegrationTest {
         Long unknownChatId = 999999L;
         AddLinkRequest request = new AddLinkRequest(URI.create("https://github.com"), List.of());
 
-        mockMvc.perform(post("/links")
+        mockMvc.perform(post("/internal/links")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
                         .header("Tg-Chat-Id", unknownChatId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -179,17 +188,19 @@ public abstract class SubscriptionIntegrationTest {
 
     @Test
     void deletingNonExistentUser() throws Exception {
-        mockMvc.perform(delete("/tg-chat/{id}", 888888L)).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/internal/tg-chat/{id}", 888888L).header("X-Internal-Token", INTERNAL_TOKEN))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     void deletingNonExistingSubscription() throws Exception {
         Long chatId = 444L;
-        mockMvc.perform(post("/tg-chat/{id}", chatId));
+        mockMvc.perform(post("/internal/tg-chat/{id}", chatId).header("X-Internal-Token", INTERNAL_TOKEN));
 
         RemoveLinkRequest request = new RemoveLinkRequest(URI.create("https://no-sub.com"));
 
-        mockMvc.perform(delete("/links")
+        mockMvc.perform(delete("/internal/links")
+                        .header("X-Internal-Token", INTERNAL_TOKEN)
                         .header("Tg-Chat-Id", chatId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -197,9 +208,10 @@ public abstract class SubscriptionIntegrationTest {
     }
 
     protected void setupUserAndSubscription(Long chatId, String url, List<String> tags) throws Exception {
-        mockMvc.perform(post("/tg-chat/{id}", chatId));
+        mockMvc.perform(post("/internal/tg-chat/{id}", chatId).header("X-Internal-Token", INTERNAL_TOKEN));
         AddLinkRequest request = new AddLinkRequest(URI.create(url), tags);
-        mockMvc.perform(post("/links")
+        mockMvc.perform(post("/internal/links")
+                .header("X-Internal-Token", INTERNAL_TOKEN)
                 .header("Tg-Chat-Id", chatId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)));

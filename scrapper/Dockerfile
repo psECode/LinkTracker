@@ -18,8 +18,9 @@ COPY pom.xml .
 COPY scrapper/pom.xml ./scrapper/
 COPY bot/pom.xml ./bot/
 COPY ai-agent/pom.xml ./ai-agent/
-COPY build-report-aggregate/pom.xml ./build-report-aggregate/
-COPY scrapper/migrations ./scrapper/migrations
+COPY avro-schemas/pom.xml ./avro-schemas/
+COPY avro-schemas/src ./avro-schemas/src
+COPY local-repo ./local-repo
 
 RUN mvn -pl scrapper -am dependency:go-offline -B
 
@@ -30,7 +31,6 @@ FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 COPY --from=builder /app/scrapper/target/*.jar app.jar
-COPY --from=builder /app/scrapper/migrations ./migrations
 
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]

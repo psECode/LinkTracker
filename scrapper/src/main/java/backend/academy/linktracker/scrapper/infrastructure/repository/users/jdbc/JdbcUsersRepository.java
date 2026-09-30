@@ -1,7 +1,7 @@
 package backend.academy.linktracker.scrapper.infrastructure.repository.users.jdbc;
 
 import backend.academy.linktracker.scrapper.domain.users.UsersRepository;
-import backend.academy.linktracker.scrapper.domain.users.dtos.CreateUserDto;
+import backend.academy.linktracker.scrapper.domain.users.dtos.CreateWebUserDto;
 import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +9,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,15 +18,24 @@ import org.springframework.stereotype.Repository;
 @ConditionalOnProperty(prefix = "app", name = "access-type", havingValue = "jdbc")
 public class JdbcUsersRepository implements UsersRepository {
     private final NamedParameterJdbcTemplate jdbc;
+
     private final RowMapper<User> rowMapper = (rs, n) -> User.builder()
             .id(rs.getObject("id", UUID.class))
-            .chatId(rs.getLong("telegram_id"))
+            .telegramId(rs.getObject("telegram_id", Long.class))
+            .email(rs.getString("email"))
+            .passwordHash(rs.getString("password_hash"))
             .isActive(rs.getBoolean("is_active"))
             .build();
 
     @Override
-    public Optional<User> readByChatId(Long id) {
-        return jdbc.query("SELECT * FROM users WHERE telegram_id = :id", Map.of("id", id), rowMapper).stream()
+    public Optional<User> readByTelegramId(Long telegramId) {
+        return jdbc.query("SELECT * FROM users WHERE telegram_id = :id", Map.of("id", telegramId), rowMapper).stream()
+                .findFirst();
+    }
+
+    @Override
+    public Optional<User> readByEmail(String email) {
+        return jdbc.query("SELECT * FROM users WHERE email = :email", Map.of("email", email), rowMapper).stream()
                 .findFirst();
     }
 
@@ -36,15 +46,30 @@ public class JdbcUsersRepository implements UsersRepository {
     }
 
     @Override
-    public Optional<User> save(CreateUserDto dto) {
+    public Optional<User> saveTelegramUser(Long telegramId) {
         String sql = """
         INSERT INTO users (id, telegram_id, is_active)
-        VALUES (:id, :chatId, true)
+        VALUES (:id, :telegramId, true)
         ON CONFLICT (telegram_id) DO UPDATE SET is_active = EXCLUDED.is_active
         RETURNING *
         """;
-        return jdbc.query(sql, Map.of("id", UUID.randomUUID(), "chatId", dto.chatId()), rowMapper).stream()
+        return jdbc.query(sql, Map.of("id", UUID.randomUUID(), "telegramId", telegramId), rowMapper).stream()
                 .findFirst();
+    }
+
+    @Override
+    public Optional<User> saveWebUser(CreateWebUserDto dto) {
+        String sql = """
+        INSERT INTO users (id, email, password_hash, is_active)
+        VALUES (:id, :email, :passwordHash, true)
+        ON CONFLICT (email) DO NOTHING
+        RETURNING *
+        """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", UUID.randomUUID())
+                .addValue("email", dto.email())
+                .addValue("passwordHash", dto.passwordHash());
+        return jdbc.query(sql, params, rowMapper).stream().findFirst();
     }
 
     @Override

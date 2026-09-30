@@ -8,6 +8,7 @@ import backend.academy.linktracker.scrapper.domain.users.entities.User;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.mappers.SubscriptionToLinkResponse;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 public class MappersTest {
@@ -15,14 +16,15 @@ public class MappersTest {
 
     @Test
     void mapTest() {
-        User user = User.builder().chatId(100L).build();
+        UUID userId = UUID.randomUUID();
+        User user = User.builder().id(userId).build();
         Link link = Link.builder().url("https://github.com").build();
         Subscription sub = Subscription.builder().tags(List.of("tag1")).build();
 
         LinkResponse response = subscriptionToLinkResponse.map(sub, link, user);
 
         assertThat(response.url().toString()).isEqualTo("https://github.com");
-        assertThat(response.id()).isEqualTo(100L);
+        assertThat(response.id()).isEqualTo(userId);
         assertThat(response.tags()).containsExactly("tag1");
     }
 }

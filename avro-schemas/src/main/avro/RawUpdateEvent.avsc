@@ -6,6 +6,7 @@
     { "name": "id", "type": "long" },
     { "name": "description", "type": "string" },
     { "name": "author", "type": "string" },
-    { "name": "tgChatIds", "type": { "type": "array", "items": "long" } }
+    { "name": "tgChatIds", "type": { "type": "array", "items": "long" } },
+    { "name": "userIds", "type": { "type": "array", "items": "string" }, "default": [] }
   ]
 }

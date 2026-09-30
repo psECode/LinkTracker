@@ -18,7 +18,9 @@ COPY pom.xml .
 COPY scrapper/pom.xml ./scrapper/
 COPY bot/pom.xml ./bot/
 COPY ai-agent/pom.xml ./ai-agent/
-COPY build-report-aggregate/pom.xml ./build-report-aggregate/
+COPY avro-schemas/pom.xml ./avro-schemas/
+COPY avro-schemas/src ./avro-schemas/src
+COPY local-repo ./local-repo
 
 RUN mvn -pl bot -am dependency:go-offline -B
 

@@ -12,8 +12,12 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class ClientConfiguration {
 
     @Bean
-    public ScrapperClient scrapperClient(@Value("${app.scrapper.url}") String baseUrl) {
-        RestClient restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public ScrapperClient scrapperClient(
+            @Value("${app.scrapper.url}") String baseUrl, @Value("${app.internal-token}") String internalToken) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader("X-Internal-Token", internalToken)
+                .build();
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build();
         return factory.createClient(ScrapperClient.class);

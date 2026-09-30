@@ -26,8 +26,8 @@ public class GetUsersSubscriptionsUseCase {
     private final ReadTrackedLinkService readTrackedLinkService;
 
     @Transactional
-    public List<SubscriptionResult> execute(Long chatId) {
-        User user = readUserService.readByChatId(chatId).orElseThrow(() -> new UserNotFoundException(chatId));
+    public List<SubscriptionResult> execute(UUID userId) {
+        User user = readUserService.readByUUID(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         List<Subscription> subs = readSubscriptionService.readByUserUUID(user.getId());
         if (subs.isEmpty()) {

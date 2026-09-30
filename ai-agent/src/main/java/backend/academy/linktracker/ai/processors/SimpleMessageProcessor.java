@@ -36,6 +36,7 @@ public class SimpleMessageProcessor implements MessageProcessor {
                 .setId(raw.getId())
                 .setDescription(description)
                 .setTgChatIds(raw.getTgChatIds())
+                .setUserIds(raw.getUserIds())
                 .setPriority(priority)
                 .build();
         return Optional.of(processed);

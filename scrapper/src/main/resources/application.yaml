@@ -25,14 +25,19 @@ spring:
     bootstrap-servers: localhost:29092
 
 app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-0123456789abcdef-0123456789}
+    ttl: 24h
+  internal-token: ${INTERNAL_API_TOKEN:dev-internal-token}
   stackoverflow:
-    key: ${STACKOVERFLOW_KEY} # Use env variable. DO NOT KEEP TOKEN HERE
-    access-token: ${STACKOVERFLOW_ACCESS_KEY:}2 # Use env variable. DO NOT KEEP TOKEN HERE
+    key: ${STACKOVERFLOW_KEY:}
+    access-token: ${STACKOVERFLOW_ACCESS_KEY:} # Use env variable. DO NOT KEEP TOKEN HERE
   github:
-    token: ${GITHUB_TOKEN} # Use env variable. DO NOT KEEP TOKEN HERE
+    token: ${GITHUB_TOKEN:}
   bot:
     url: http://localhost:8080
     timeout: 2s
+    internal-token: ${INTERNAL_API_TOKEN:dev-internal-token}
   scheduler:
     interval: 30s
     linkcheckinterval: 1m

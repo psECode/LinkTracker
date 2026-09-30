@@ -1,5 +1,13 @@
 app:
   access-type: jpa
+  jwt:
+    secret: test-secret-0123456789abcdef-0123456789
+    ttl: 1h
+  internal-token: test-internal-token
+  bot:
+    url: http://localhost:8080
+    timeout: 2s
+    internal-token: test-internal-token
   kafka:
     topic-name: "link_updates"
 
