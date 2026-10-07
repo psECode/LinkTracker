@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -48,8 +47,7 @@ public class InternalTokenFilter extends OncePerRequestFilter {
                             "Не авторизован",
                             "401",
                             "Unauthorized",
-                            "Отсутствует или неверен заголовок X-Internal-Token",
-                            List.of()));
+                            "Отсутствует или неверен заголовок X-Internal-Token"));
             return;
         }
 

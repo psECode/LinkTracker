@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.application.notifications.usecases;
 
+import backend.academy.linktracker.scrapper.application.push.usecases.DeliverWebPushUseCase;
 import backend.academy.linktracker.scrapper.domain.notifications.NotificationRepository;
 import backend.academy.linktracker.scrapper.domain.notifications.dtos.CreateNotificationDTO;
 import jakarta.transaction.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class SaveNotificationsUseCase {
 
     private final NotificationRepository notificationRepository;
+    private final DeliverWebPushUseCase deliverWebPushUseCase;
 
     @Transactional
     public void execute(UUID linkId, List<UUID> userIds, String message) {
@@ -26,5 +28,7 @@ public class SaveNotificationsUseCase {
 
         notificationRepository.saveAll(dtos);
         log.info("В inbox сохранено {} уведомлений по ссылке {}", dtos.size(), linkId);
+
+        deliverWebPushUseCase.execute(userIds, message);
     }
 }

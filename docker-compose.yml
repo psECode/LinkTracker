@@ -8,11 +8,26 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d scrapper"]
       interval: 5s
       timeout: 3s
       retries: 10
+
+  migrations:
+    build:
+      context: .
+      dockerfile: migrations/Dockerfile
+    container_name: scrapper_migrations
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-scrapper}
+      LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER:-postgres}
+      LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    depends_on:
+      db:
+        condition: service_healthy
 
   redis:
     image: valkey/valkey:8.0-alpine
@@ -109,9 +124,15 @@ services:
       APP_GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       APP_STACKOVERFLOW_KEY: ${STACKOVERFLOW_KEY:-}
       APP_STACKOVERFLOW_ACCESSTOKEN: ${STACKOVERFLOW_ACCESS_KEY:-}
+      APP_WEBPUSH_PUBLICKEY: ${VAPID_PUBLIC_KEY:-}
+      APP_WEBPUSH_PRIVATEKEY: ${VAPID_PRIVATE_KEY:-}
+      APP_WEBPUSH_SUBJECT: ${VAPID_SUBJECT:-mailto:link-tracker@example.com}
+      SPRING_LIQUIBASE_ENABLED: "false"
     depends_on:
       db:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
       kafka:
         condition: service_started
       schema-registry:
@@ -160,3 +181,6 @@ services:
       - "8080:80"
     depends_on:
       - scrapper
+
+volumes:
+  db-data:

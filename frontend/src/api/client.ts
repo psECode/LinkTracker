@@ -47,7 +47,6 @@ interface ErrorBody {
   code?: string;
   exceptionName?: string;
   exceptionMessage?: string;
-  stacktrace?: unknown;
 }
 
 export class ApiError extends Error {
@@ -166,4 +165,25 @@ export function getNotifications(unread: boolean, limit: number): Promise<Notifi
 
 export function markRead(ids: string[] | null, all: boolean): Promise<MarkReadResponse> {
   return request<MarkReadResponse>('POST', '/api/notifications/read', { ids, all });
+}
+
+export interface PushKeys {
+  p256dh: string;
+  auth: string;
+}
+
+export interface PushPublicKeyResponse {
+  publicKey: string;
+}
+
+export function getPushPublicKey(): Promise<PushPublicKeyResponse> {
+  return request<PushPublicKeyResponse>('GET', '/api/push/key');
+}
+
+export function subscribePush(endpoint: string, keys: PushKeys): Promise<void> {
+  return request<void>('POST', '/api/push/subscribe', { endpoint, keys });
+}
+
+export function unsubscribePush(endpoint: string): Promise<void> {
+  return request<void>('POST', '/api/push/unsubscribe', { endpoint });
 }

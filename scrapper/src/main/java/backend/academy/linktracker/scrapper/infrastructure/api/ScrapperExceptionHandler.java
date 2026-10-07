@@ -8,52 +8,66 @@ import backend.academy.linktracker.scrapper.infrastructure.api.errors.LinkNotFou
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.SubscriptionNotFoundException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserAlreadyExistsException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.UserNotFoundException;
-import java.util.Arrays;
-import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class ScrapperExceptionHandler {
 
     @ExceptionHandler({UserNotFoundException.class, LinkNotFoundException.class, SubscriptionNotFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
-        return buildResponse(ex, HttpStatus.NOT_FOUND, "Запрашиваемый ресурс не найден");
+        return buildResponse(ex, HttpStatus.NOT_FOUND, "Запрашиваемый ресурс не найден", true);
     }
 
     @ExceptionHandler({LinkAlreadyTrackedException.class, UserAlreadyExistsException.class})
     public ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException ex) {
-        return buildResponse(ex, HttpStatus.CONFLICT, "Ресурс уже существует");
+        return buildResponse(ex, HttpStatus.CONFLICT, "Ресурс уже существует", true);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return buildResponse(ex, HttpStatus.UNAUTHORIZED, "Ошибка аутентификации");
+        return buildResponse(ex, HttpStatus.UNAUTHORIZED, "Ошибка аутентификации", true);
     }
 
     @ExceptionHandler({IllegalArgumentException.class, InvalidLinkException.class})
     public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
-        return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса");
+        return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса", true);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса", true);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректное тело запроса", false);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleInternalError(Exception ex) {
-        return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера");
+        return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", false);
     }
 
-    private ResponseEntity<ApiErrorResponse> buildResponse(Exception ex, HttpStatus status, String description) {
-        List<String> stacktrace = Arrays.stream(ex.getStackTrace())
-                .map(StackTraceElement::toString)
-                .toList();
+    private ResponseEntity<ApiErrorResponse> buildResponse(
+            Exception ex, HttpStatus status, String description, boolean includeDetails) {
+        if (status.is5xxServerError()) {
+            log.error("Обработана ошибка {}: {}", status.value(), description, ex);
+        } else {
+            log.warn("Обработана ошибка {}: {} ({})", status.value(), description, ex.getClass().getSimpleName());
+        }
 
         ApiErrorResponse errorDTO = new ApiErrorResponse(
                 description,
                 String.valueOf(status.value()),
-                ex.getClass().getSimpleName(),
-                ex.getMessage(),
-                stacktrace);
+                includeDetails ? ex.getClass().getSimpleName() : null,
+                includeDetails ? ex.getMessage() : null);
 
         return new ResponseEntity<>(errorDTO, status);
     }

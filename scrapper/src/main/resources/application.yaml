@@ -42,6 +42,10 @@ app:
     interval: 30s
     linkcheckinterval: 1m
     batch-size: 10
+  web-push:
+    public-key: ${VAPID_PUBLIC_KEY:}
+    private-key: ${VAPID_PRIVATE_KEY:}
+    subject: ${VAPID_SUBJECT:mailto:link-tracker@example.com}
   access-type: jdbc
   use-queue: true
   kafka:

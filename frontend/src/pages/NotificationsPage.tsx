@@ -8,6 +8,7 @@ export default function NotificationsPage() {
     queryKey: ['notifications'],
     queryFn: () => api.getNotifications(false, 50),
     refetchInterval: 20000,
+    refetchIntervalInBackground: true,
   });
 
   const markMutation = useMutation({

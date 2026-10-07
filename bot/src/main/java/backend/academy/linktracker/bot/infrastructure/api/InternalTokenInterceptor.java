@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.List;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class InternalTokenInterceptor implements HandlerInterceptor {
@@ -37,8 +36,7 @@ public class InternalTokenInterceptor implements HandlerInterceptor {
                             "Не авторизован",
                             "401",
                             "Unauthorized",
-                            "Отсутствует или неверен заголовок X-Internal-Token",
-                            List.of()));
+                            "Отсутствует или неверен заголовок X-Internal-Token"));
             return false;
         }
         return true;
