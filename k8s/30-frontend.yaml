@@ -1,0 +1,72 @@
+---
+# HTTP  — 30080: проверка API, port-forward на localhost.
+# HTTPS — 30443: для web push
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: link-tracker
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: link-tracker-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: tls
+          mountPath: /etc/nginx/certs
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+      volumes:
+      - name: tls
+        secret:
+          secretName: frontend-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: link-tracker
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+  - name: https
+    port: 443
+    targetPort: 443
+    nodePort: 30443

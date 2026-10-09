@@ -6,6 +6,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackove
 import backend.academy.linktracker.scrapper.properties.BotProperties;
 import backend.academy.linktracker.scrapper.properties.GithubProperties;
 import backend.academy.linktracker.scrapper.properties.StackoverflowProperties;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,7 @@ public class ClientConfiguration {
     public GithubClient githubClient(@Value("${app.github.url:https://api.github.com}") String baseUrl) {
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl(baseUrl)
+                .requestFactory(timedRequestFactory(githubProperties.getTimeout()))
                 .defaultHeader("User-Agent", "LinkTrackerBot");
 
         if (githubProperties.getToken() != null && !githubProperties.getToken().isBlank()) {
@@ -79,6 +81,7 @@ public class ClientConfiguration {
 
         RestClient restClient = RestClient.builder()
                 .baseUrl(uriBuilder.build().toUriString())
+                .requestFactory(timedRequestFactory(stackoverflowProperties.getTimeout()))
                 .defaultHeader("User-Agent", "LinkTrackerBot")
                 .requestInterceptor((request, body, execution) -> {
                     log.info("Requesting StackExchange API: {}", request.getURI());
@@ -95,5 +98,15 @@ public class ClientConfiguration {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))
                 .build();
         return factory.createClient(clientClass);
+    }
+
+    private JdkClientHttpRequestFactory timedRequestFactory(Duration timeout) {
+        java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+                .version(java.net.http.HttpClient.Version.HTTP_1_1)
+                .connectTimeout(timeout)
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(timeout);
+        return factory;
     }
 }

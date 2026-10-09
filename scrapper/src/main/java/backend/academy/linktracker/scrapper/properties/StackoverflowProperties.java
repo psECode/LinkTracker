@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.properties;
 
+import java.time.Duration;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +19,6 @@ public class StackoverflowProperties {
     private String key;
 
     private String accessToken;
+
+    private Duration timeout = Duration.ofSeconds(10);
 }

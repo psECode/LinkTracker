@@ -1,0 +1,38 @@
+---
+# отдельная джоба чтобы запускалось отдельно от приложений и БД
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations
+  namespace: link-tracker
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: db-migrations
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: liquibase
+        image: link-tracker-migrations:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: LIQUIBASE_COMMAND_URL
+          value: jdbc:postgresql://postgres:5432/scrapper
+        - name: LIQUIBASE_COMMAND_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_USER
+        - name: LIQUIBASE_COMMAND_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_PASSWORD
+        resources:
+          requests:
+            memory: 128Mi
+          limits:
+            memory: 512Mi

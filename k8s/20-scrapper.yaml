@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scrapper
+  namespace: link-tracker
+  labels:
+    app: scrapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scrapper
+  template:
+    metadata:
+      labels:
+        app: scrapper
+    spec:
+      containers:
+      - name: scrapper
+        image: link-tracker-scrapper:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: link-tracker-secrets
+        env:
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_PASSWORD
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          periodSeconds: 5
+          failureThreshold: 36
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scrapper
+  namespace: link-tracker
+spec:
+  selector:
+    app: scrapper
+  ports:
+  - port: 8081
+    targetPort: 8081

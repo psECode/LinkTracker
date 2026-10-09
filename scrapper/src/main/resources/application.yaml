@@ -32,8 +32,10 @@ app:
   stackoverflow:
     key: ${STACKOVERFLOW_KEY:}
     access-token: ${STACKOVERFLOW_ACCESS_KEY:} # Use env variable. DO NOT KEEP TOKEN HERE
+    timeout: 10s
   github:
     token: ${GITHUB_TOKEN:}
+    timeout: 10s
   bot:
     url: http://localhost:8080
     timeout: 2s

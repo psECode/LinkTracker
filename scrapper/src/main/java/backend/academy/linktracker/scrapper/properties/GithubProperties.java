@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.properties;
 
+import java.time.Duration;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,8 @@ import org.springframework.validation.annotation.Validated;
 public class GithubProperties {
 
     private String token;
+
+    private Duration timeout = Duration.ofSeconds(10);
 
     int issuesPerOnce;
 }
