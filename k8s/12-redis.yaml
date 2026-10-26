@@ -1,13 +1,32 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
   name: redis
   namespace: link-tracker
   labels:
     app: redis
 spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: link-tracker
+  labels:
+    app: redis
+spec:
+  serviceName: redis
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: redis
@@ -23,26 +42,28 @@ spec:
         command: ["valkey-server", "--protected-mode", "no"]
         ports:
         - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: data
+          mountPath: /data
         readinessProbe:
           tcpSocket:
-            port: 6379
+            port: redis
           initialDelaySeconds: 3
           periodSeconds: 5
+          failureThreshold: 12
         resources:
           requests:
             cpu: 10m
             memory: 32Mi
           limits:
             memory: 128Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-  namespace: link-tracker
-spec:
-  selector:
-    app: redis
-  ports:
-  - port: 6379
-    targetPort: 6379
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi

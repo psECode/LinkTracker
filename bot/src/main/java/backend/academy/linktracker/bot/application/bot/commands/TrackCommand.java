@@ -14,10 +14,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TrackCommand implements CommandInterface {
@@ -62,6 +64,7 @@ public class TrackCommand implements CommandInterface {
             return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
 
         } catch (Exception e) {
+            log.warn("Failed to add link {}: {}", link, e.getMessage(), e);
             return messageSource.getMessage("bot.error", null, Locale.of("ru"));
         }
     }

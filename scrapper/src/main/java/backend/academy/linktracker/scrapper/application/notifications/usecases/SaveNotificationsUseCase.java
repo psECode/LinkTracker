@@ -27,7 +27,7 @@ public class SaveNotificationsUseCase {
                 .toList();
 
         notificationRepository.saveAll(dtos);
-        log.info("В inbox сохранено {} уведомлений по ссылке {}", dtos.size(), linkId);
+        log.info("Saved {} notifications to inbox for link {}", dtos.size(), linkId);
 
         deliverWebPushUseCase.execute(userIds, message);
     }

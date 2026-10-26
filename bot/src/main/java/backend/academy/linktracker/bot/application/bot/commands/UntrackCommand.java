@@ -15,12 +15,14 @@ import backend.academy.linktracker.bot.infrastructure.api.dtos.ApiErrorResponse;
 import java.net.URI;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import tools.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @Import(com.fasterxml.jackson.databind.ObjectMapper.class)
@@ -52,6 +54,7 @@ public class UntrackCommand implements CommandInterface {
             return messageSource.getMessage("bot.error.link_not_found", null, Locale.of("ru"));
 
         } catch (Exception e) {
+            log.warn("Failed to unsubscribe from link: {}", e.getMessage(), e);
             return messageSource.getMessage("bot.error", null, Locale.of("ru"));
         }
     }

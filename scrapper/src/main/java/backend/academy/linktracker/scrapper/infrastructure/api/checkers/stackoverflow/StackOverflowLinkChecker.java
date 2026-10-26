@@ -47,14 +47,13 @@ public class StackOverflowLinkChecker implements LinkChecker {
             var comments = commentsTask.join().items();
 
             List<UpdateDescription> updates = Stream.of(
-                            processItems(answers, "Новый ответ"),
-                            processItems(comments, "Новый комментарий"))
+                            processItems(answers, "Новый ответ"), processItems(comments, "Новый комментарий"))
                     .flatMap(List::stream)
                     .sorted(Comparator.comparing(UpdateDescription::date))
                     .toList();
 
             log.info(
-                    "StackOverflow вопрос {}: fromDate={}, получено: ответов={}, комментариев={}, обновлений={}",
+                    "StackOverflow question {}: fromDate={}, fetched: answers={}, comments={}, updates={}",
                     questionId,
                     fromDate,
                     answers.size(),

@@ -7,8 +7,10 @@ import backend.academy.linktracker.scrapper.infrastructure.api.checkers.LinkUpda
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LinkUpdater {
@@ -19,6 +21,7 @@ public class LinkUpdater {
             var updates = checkers.get(link.getType()).checkUpdates(link);
             return new LinkUpdateReport(link, updates, null);
         } catch (Exception e) {
+            log.warn("Link {} check failed: {}", link.getUrl(), e.getMessage(), e);
             return new LinkUpdateReport(link, List.of(), e.getMessage());
         }
     }

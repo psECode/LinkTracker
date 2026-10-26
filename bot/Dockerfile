@@ -20,6 +20,8 @@ COPY bot/pom.xml ./bot/
 COPY ai-agent/pom.xml ./ai-agent/
 COPY avro-schemas/pom.xml ./avro-schemas/
 COPY avro-schemas/src ./avro-schemas/src
+COPY logging/pom.xml ./logging/
+COPY logging/src ./logging/src
 COPY local-repo ./local-repo
 
 RUN mvn -pl bot -am dependency:go-offline -B

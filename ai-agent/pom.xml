@@ -17,6 +17,10 @@
             <artifactId>avro-schemas</artifactId>
         </dependency>
         <dependency>
+            <groupId>backend.academy.link-tracker</groupId>
+            <artifactId>logging</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>1.11.3</version>

@@ -2,6 +2,10 @@ server:
   port: 8082
 
 spring:
+  main:
+    banner-mode: off
+  application:
+    name: ai-agent
   devtools:
     restart:
       enabled: false

@@ -6,15 +6,17 @@ metadata:
   namespace: link-tracker
 data:
   # kafka
-  SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:9092
-  APP_KAFKA_BOOTSTRAPSERVERS: kafka:9092
+  SPRING_KAFKA_BOOTSTRAPSERVERS: kafka-0.kafka:9092
+  APP_KAFKA_BOOTSTRAPSERVERS: kafka-0.kafka:9092
   APP_KAFKA_SCHEMAREGISTRYURL: http://schema-registry:8081
   # bot&scrapper
   APP_BOT_URL: http://bot:8080
   APP_SCRAPPER_URL: http://scrapper:8081
   # redis(ka)
-  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_HOST: redis-0.redis
   # migrations сделает отдельная джоба
   SPRING_LIQUIBASE_ENABLED: "false"
   # postgres
-  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scrapper
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-0.postgres:5432/scrapper
+  # енв для логов
+  APP_ENV: "prod"

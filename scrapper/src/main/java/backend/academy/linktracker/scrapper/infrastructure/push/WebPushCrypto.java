@@ -36,8 +36,7 @@ public final class WebPushCrypto {
     private static final int PUBLIC_KEY_LENGTH = 65;
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private WebPushCrypto() {
-    }
+    private WebPushCrypto() {}
 
     public static byte[] encrypt(String recipientPublicKeyBase64Url, String authSecretBase64Url, String payload)
             throws GeneralSecurityException {
@@ -61,12 +60,21 @@ public final class WebPushCrypto {
                 ecdhSecret,
                 concat("WebPush: info".getBytes(StandardCharsets.US_ASCII), new byte[] {0}, recipientKey, senderKey),
                 32);
-        byte[] prkKey = hkdf(ikm, authSecret, concat("Content-Encoding: auth".getBytes(StandardCharsets.US_ASCII),
-                new byte[] {0}), 32);
-        byte[] contentEncryptionKey = hkdf(salt, prkKey,
-                concat("Content-Encoding: aes128gcm".getBytes(StandardCharsets.US_ASCII), new byte[] {0}), 16);
-        byte[] nonce = hkdf(salt, prkKey,
-                concat("Content-Encoding: nonce".getBytes(StandardCharsets.US_ASCII), new byte[] {0}), 12);
+        byte[] prkKey = hkdf(
+                ikm,
+                authSecret,
+                concat("Content-Encoding: auth".getBytes(StandardCharsets.US_ASCII), new byte[] {0}),
+                32);
+        byte[] contentEncryptionKey = hkdf(
+                salt,
+                prkKey,
+                concat("Content-Encoding: aes128gcm".getBytes(StandardCharsets.US_ASCII), new byte[] {0}),
+                16);
+        byte[] nonce = hkdf(
+                salt,
+                prkKey,
+                concat("Content-Encoding: nonce".getBytes(StandardCharsets.US_ASCII), new byte[] {0}),
+                12);
 
         byte[] paddedRecord = Arrays.copyOf(plaintext, plaintext.length + 1);
         paddedRecord[plaintext.length] = 0x02;

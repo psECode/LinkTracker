@@ -64,7 +64,7 @@ public class GithubLinkChecker implements LinkChecker {
                     .toList();
 
             log.info(
-                    "GitHub {}/{}: since={}, получено: issues={}, комм. к issues={}, комм. к PR={}, обновлений после фильтра={}",
+                    "GitHub {}/{}: since={}, fetched: issues={}, issue comments={}, PR comments={}, updates after filter={}",
                     owner,
                     repo,
                     since,

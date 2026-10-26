@@ -43,15 +43,11 @@ public class JdbcPushSubscriptionRepository implements PushSubscriptionRepositor
     @Override
     public List<PushSubscription> findByUser(UUID userId) {
         return jdbc.query(
-                "SELECT * FROM push_subscriptions WHERE user_id = :userId",
-                Map.of("userId", userId),
-                rowMapper);
+                "SELECT * FROM push_subscriptions WHERE user_id = :userId", Map.of("userId", userId), rowMapper);
     }
 
     @Override
     public void deleteByEndpoint(String endpoint) {
-        jdbc.update(
-                "DELETE FROM push_subscriptions WHERE endpoint = :endpoint",
-                Map.of("endpoint", endpoint));
+        jdbc.update("DELETE FROM push_subscriptions WHERE endpoint = :endpoint", Map.of("endpoint", endpoint));
     }
 }

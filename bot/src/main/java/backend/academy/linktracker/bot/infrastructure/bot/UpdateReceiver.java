@@ -1,6 +1,7 @@
 package backend.academy.linktracker.bot.infrastructure.bot;
 
 import backend.academy.linktracker.bot.application.bot.CommandDispatcher;
+import backend.academy.linktracker.logging.MdcTraceId;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -27,7 +28,7 @@ public class UpdateReceiver {
                     Long chatId = update.message().chat().id();
                     String text = update.message().text();
 
-                    dispatcher.dispatch(chatId, text);
+                    MdcTraceId.run("tg-" + update.updateId(), () -> dispatcher.dispatch(chatId, text));
                 }
             }
             return UpdatesListener.CONFIRMED_UPDATES_ALL;

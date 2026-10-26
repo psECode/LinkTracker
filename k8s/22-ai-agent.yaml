@@ -27,6 +27,11 @@ spec:
             name: app-config
         - secretRef:
             name: link-tracker-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         resources:
           requests:
             cpu: 100m

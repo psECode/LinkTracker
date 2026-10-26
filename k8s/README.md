@@ -5,9 +5,6 @@
 # можешь с другим драйвером, мне было интересно через виртуалку (значения кластера выбраны примерно под стек)
 minikube start --driver=virtualbox --memory=6000 --cpus=3
 
-# DNS-фикс под vpn/fake-dns хоста (после каждого minikube start)
-./k8s/fix-dns.sh
-
 docker compose build
 minikube image load link-tracker-scrapper link-tracker-bot link-tracker-ai-agent \
                     link-tracker-migrations link-tracker-frontend
@@ -34,27 +31,28 @@ kubectl apply -f k8s/10-postgres.yaml -f k8s/11-migrations-job.yaml \
 kubectl -n link-tracker wait --for=condition=complete job/db-migrations --timeout=300s
 kubectl apply -f k8s/20-scrapper.yaml -f k8s/21-bot.yaml -f k8s/22-ai-agent.yaml -f k8s/30-frontend.yaml
 
+# логи: Victoria Logs + сборщик Vector (см. раздел "Логирование и Victoria Logs" ниже)
+kubectl apply -f k8s/40-victoria-logs.yaml -f k8s/41-vector-logs.yaml
+
+# образы Victoria Logs / Vector можно заранее загрузить в minikube
+# (если pull из docker hub внутри кластера не проходит из-за vpn/fake-dns):
+docker pull victoriametrics/victoria-logs:v1.53.0
+docker pull timberio/vector:0.60.0-debian
+minikube image load victoriametrics/victoria-logs:v1.53.0 timberio/vector:0.60.0-debian
+
 # можно проверить
 kubectl -n link-tracker get pods,svc
 curl http://$(minikube ip):30080/
 echo "https://$(minikube ip):30443/"
 
-kubectl -n link-tracker scale deployment scrapper --replicas=3
-kubectl -n link-tracker get pods -l app=scrapper -w
-kubectl -n link-tracker get deployment scrapper
-kubectl -n link-tracker get endpoints scrapper
+# метрики 
+helm install vmsingle vm/victoria-metrics-single -f k8s/guide-vmsingle-values.yaml
+docker pull quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+minikube image load victoriametrics/victoria-metrics:v1.136.0 \
+                    quay.io/prometheuscommunity/postgres-exporter:v0.20.1
 ```
 
-## Окружение с vpn/fake-dns
-
-у меня впн с fake-dns поэтому он не пропускает траффик (поэтому в докере там dns 1.1.1.1 8.8.8.8):
-если с впн не работает то можешь попробовать
-
-Готовый скрипт (применять после каждого `minikube start`; эквивалент ручной
-правки forward-блока в CoreDNS, внутренние имена *.svc.cluster.local не трогает):
-
-```bash
-./k8s/fix-dns.sh            # применить фикс
-./k8s/fix-dns.sh --check    # только проверить
-./k8s/fix-dns.sh --revert   # вернуть исходный forward на нодный резолвер
-```
+# можно проверить
+kubectl -n link-tracker get pods,svc
+curl http://$(minikube ip):30080/
+echo "https://$(minikube ip):30443/"

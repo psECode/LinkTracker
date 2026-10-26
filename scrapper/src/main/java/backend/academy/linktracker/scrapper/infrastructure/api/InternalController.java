@@ -81,8 +81,14 @@ public class InternalController {
         meterRegistry.counter("api_requests_total", "source", "bot").increment();
         UUID userId = resolveUserId(chatId);
 
-        SubscriptionResult res = subscribeUserUseCase.execute(userId, request.link(), request.tags());
-        return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
+        try {
+            SubscriptionResult res = subscribeUserUseCase.execute(userId, request.link(), request.tags());
+            meterRegistry.counter("links_tracked_total", "operation", "add", "outcome", "success").increment();
+            return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
+        } catch (RuntimeException e) {
+            meterRegistry.counter("links_tracked_total", "operation", "add", "outcome", "failure").increment();
+            throw e;
+        }
     }
 
     @DeleteMapping("/links")
@@ -91,9 +97,15 @@ public class InternalController {
         meterRegistry.counter("api_requests_total", "source", "bot").increment();
         UUID userId = resolveUserId(chatId);
 
-        SubscriptionResult res =
-                unsubscribeUserUseCase.execute(userId, request.link().toString());
-        return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
+        try {
+            SubscriptionResult res =
+                    unsubscribeUserUseCase.execute(userId, request.link().toString());
+            meterRegistry.counter("links_tracked_total", "operation", "remove", "outcome", "success").increment();
+            return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
+        } catch (RuntimeException e) {
+            meterRegistry.counter("links_tracked_total", "operation", "remove", "outcome", "failure").increment();
+            throw e;
+        }
     }
 
     private UUID resolveUserId(Long chatId) {

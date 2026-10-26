@@ -28,6 +28,7 @@
         <module>ai-agent</module>
         <module>avro-schemas</module>
         <module>bot</module>
+        <module>logging</module>
         <module>scrapper</module>
     </modules>
 
@@ -86,6 +87,11 @@
             <dependency>
                 <groupId>backend.academy.link-tracker</groupId>
                 <artifactId>avro-schemas</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>backend.academy.link-tracker</groupId>
+                <artifactId>logging</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

@@ -2,6 +2,7 @@ package backend.academy.linktracker.bot.infrastructure.api;
 
 import backend.academy.linktracker.bot.application.bot.usecases.ProcessUpdateUseCase;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
+import backend.academy.linktracker.logging.MdcTraceId;
 import com.example.notification.ProcessedUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,22 +23,24 @@ public class ScraperQueueListener {
     public void listen(ProcessedUpdateEvent event) {
         log.info("got message from kafka");
 
-        try {
-            LinkUpdate update = new LinkUpdate(
-                    event.getId(),
-                    event.getDescription().toString(),
-                    event.getPriority().toString(),
-                    event.getTgChatIds());
+        MdcTraceId.run("kafka-" + event.getId(), () -> {
+            try {
+                LinkUpdate update = new LinkUpdate(
+                        event.getId(),
+                        event.getDescription().toString(),
+                        event.getPriority().toString(),
+                        event.getTgChatIds());
 
-            log.debug("data: {}", update);
+                log.debug("data: {}", update);
 
-            processUpdateUseCase.execute(update);
+                processUpdateUseCase.execute(update);
 
-            log.info("success for ID {} ", update.id());
+                log.info("success for ID {}", update.id());
 
-        } catch (Exception e) {
-            log.error("exception: {}. retry.", e.getMessage());
-            throw e;
-        }
+            } catch (RuntimeException e) {
+                log.error("exception: {}. retry.", e.getMessage(), e);
+                throw e;
+            }
+        });
     }
 }

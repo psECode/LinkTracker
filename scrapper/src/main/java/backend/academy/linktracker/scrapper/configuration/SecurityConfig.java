@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +25,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final int MANAGEMENT_CHAIN_ORDER = 0;
+    private static final int MAIN_CHAIN_ORDER = 1;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,6 +55,17 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(MANAGEMENT_CHAIN_ORDER)
+    public SecurityFilterChain managementPortSecurityFilterChain(
+            HttpSecurity http, @Value("${management.server.port:8012}") int managementPort) throws Exception {
+        return http.securityMatcher(request -> request.getLocalPort() == managementPort)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+    }
+
+    @Bean
+    @Order(MAIN_CHAIN_ORDER)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http, InternalTokenFilter internalTokenFilter, JwtAuthenticationEntryPoint entryPoint)
             throws Exception {

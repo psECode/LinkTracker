@@ -1,24 +1,33 @@
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kafka-data
-  namespace: link-tracker
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Service
 metadata:
   name: kafka
   namespace: link-tracker
   labels:
     app: kafka
 spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: kafka
+  ports:
+  - name: internal
+    port: 9092
+    targetPort: internal
+  - name: controller
+    port: 9093
+    targetPort: controller
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: link-tracker
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka
   replicas: 1
   selector:
     matchLabels:
@@ -34,25 +43,25 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9092
+          name: internal
         - containerPort: 9093
+          name: controller
         env:
-        # так как нода одна кафки (больше я на своем ноуте не запущу)
         - name: KAFKA_NODE_ID
           value: "1"
-        # переносим из докера
         - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
         - name: KAFKA_PROCESS_ROLES
           value: broker,controller
-        # была ошибка unable to register with controller quorum так как
-        # я сначала скопировал как в докере, но там 1@kafka резолвилось неправильно
-        # поэтому поставил локалхост (так как нода одна все норм)
+        # был localhost, потому что в Deployment `1@kafka` резолвился в ClusterIP
+        # и KRaft не собирался; со StatefulSet у пода стабильное DNS-имя —
+        # voter адресуется через headless DNS
         - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-          value: 1@localhost:9093
+          value: 1@kafka-0.kafka.link-tracker.svc:9093
         - name: KAFKA_LISTENERS
           value: INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: INTERNAL://kafka:9092
+          value: INTERNAL://kafka-0.kafka.link-tracker.svc:9092
         - name: KAFKA_INTER_BROKER_LISTENER_NAME
           value: INTERNAL
         - name: KAFKA_CONTROLLER_LISTENER_NAMES
@@ -66,7 +75,7 @@ spec:
           mountPath: /var/lib/kafka/data
         readinessProbe:
           tcpSocket:
-            port: 9092
+            port: internal
           initialDelaySeconds: 25
           periodSeconds: 10
           failureThreshold: 18
@@ -76,23 +85,12 @@ spec:
             memory: 256Mi
           limits:
             memory: 1536Mi
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: kafka-data
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka
-  namespace: link-tracker
-spec:
-  selector:
-    app: kafka
-  ports:
-  - name: internal
-    port: 9092
-    targetPort: 9092
-  - name: controller
-    port: 9093
-    targetPort: 9093
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi

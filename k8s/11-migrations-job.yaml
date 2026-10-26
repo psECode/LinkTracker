@@ -20,7 +20,7 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         - name: LIQUIBASE_COMMAND_URL
-          value: jdbc:postgresql://postgres:5432/scrapper
+          value: jdbc:postgresql://postgres-0.postgres:5432/scrapper
         - name: LIQUIBASE_COMMAND_USERNAME
           valueFrom:
             secretKeyRef:

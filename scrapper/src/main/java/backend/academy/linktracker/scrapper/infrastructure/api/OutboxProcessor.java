@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxMessage;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxRepository;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxStatus;
@@ -33,30 +34,32 @@ public class OutboxProcessor {
         List<OutboxMessage> pending = outboxRepository.readPending(10);
 
         for (OutboxMessage msg : pending) {
-            try {
-                LinkUpdate dto = objectMapper.readValue(msg.getPayload(), LinkUpdate.class);
+            MdcTraceId.run("outbox-" + msg.getId(), () -> {
+                try {
+                    LinkUpdate dto = objectMapper.readValue(msg.getPayload(), LinkUpdate.class);
 
-                RawUpdateEvent event = RawUpdateEvent.newBuilder()
-                        .setId(dto.id())
-                        .setDescription(dto.description())
-                        .setAuthor(dto.author() != null ? dto.author() : "unknown")
-                        .setTgChatIds(dto.tgChatIds())
-                        .setUserIds(
-                                dto.userIds() == null
-                                        ? List.of()
-                                        : dto.userIds().stream()
-                                                .map(UUID::toString)
-                                                .toList())
-                        .build();
+                    RawUpdateEvent event = RawUpdateEvent.newBuilder()
+                            .setId(dto.id())
+                            .setDescription(dto.description())
+                            .setAuthor(dto.author() != null ? dto.author() : "unknown")
+                            .setTgChatIds(dto.tgChatIds())
+                            .setUserIds(
+                                    dto.userIds() == null
+                                            ? List.of()
+                                            : dto.userIds().stream()
+                                                    .map(UUID::toString)
+                                                    .toList())
+                            .build();
 
-                kafkaTemplate.send(topicName, event).get();
+                    kafkaTemplate.send(topicName, event).get();
 
-                outboxRepository.updateStatus(msg.getId(), OutboxStatus.SENT);
-                log.info("Successfully processed outbox message: {}", msg.getId());
+                    outboxRepository.updateStatus(msg.getId(), OutboxStatus.SENT);
+                    log.info("Successfully processed outbox message: {}", msg.getId());
 
-            } catch (Exception e) {
-                log.error("Failed to process outbox message {}: {}", msg.getId(), e.getMessage());
-            }
+                } catch (Exception e) {
+                    log.error("Failed to process outbox message {}: {}", msg.getId(), e.getMessage(), e);
+                }
+            });
         }
     }
 }

@@ -57,3 +57,5 @@ build/
 ### Mac OS ###
 .DS_Store
 k8s/coredns-backup-*.yaml
+
+.helm-cache/

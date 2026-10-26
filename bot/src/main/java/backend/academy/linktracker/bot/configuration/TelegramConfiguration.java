@@ -35,7 +35,7 @@ public class TelegramConfiguration {
     public CommandLineRunner menuInitializer(TelegramBot bot, List<CommandInterface> commands) {
         return args -> {
             try {
-                log.info("Настройка меню команд Telegram...");
+                log.info("Setting up Telegram command menu...");
 
                 BotCommand[] botCommands = commands.stream()
                         .filter(cmd -> cmd.getMenuName() != null)
@@ -46,15 +46,15 @@ public class TelegramConfiguration {
                     SetMyCommands request = new SetMyCommands(botCommands);
                     BaseResponse response = bot.execute(request);
                     if (response.isOk()) {
-                        log.info("Меню команд успешно обновлено");
+                        log.info("Telegram command menu updated");
                     } else {
-                        log.error("Ошибка обновления меню: {}", response.description());
+                        log.error("Failed to update Telegram command menu: {}", response.description());
                     }
                 }
             } catch (Exception e) {
                 log.error(
-                        "Бот запущен без доступа к Telegram API. Он начнет работу, когда появится связь. Ошибка: {}",
-                        e.getMessage());
+                        "Bot started without Telegram API access. It will start working once connection is available.",
+                        e);
             }
         };
     }

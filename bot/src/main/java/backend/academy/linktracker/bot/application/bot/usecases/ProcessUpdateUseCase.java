@@ -15,7 +15,7 @@ public class ProcessUpdateUseCase {
     public void execute(LinkUpdate update) {
         String messageText = String.format("Обновление: %s", update.description());
         int recipients = update.tgChatIds() == null ? 0 : update.tgChatIds().size();
-        log.info("Доставка обновления id={} в Telegram: {} получателей", update.id(), recipients);
+        log.info("Delivering update id={} to Telegram: {} recipients", update.id(), recipients);
 
         for (Long chatId : update.tgChatIds()) {
             messageSender.sendText(chatId, messageText);

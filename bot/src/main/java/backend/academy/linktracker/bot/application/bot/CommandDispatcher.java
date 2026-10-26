@@ -9,6 +9,7 @@ import backend.academy.linktracker.bot.domain.context.ContextHandler;
 import backend.academy.linktracker.bot.domain.context.ContextHandlerFactory;
 import backend.academy.linktracker.bot.domain.context.ContextResult;
 import backend.academy.linktracker.bot.domain.context.ContextType;
+import backend.academy.linktracker.logging.MdcTraceId;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
@@ -44,29 +45,32 @@ public class CommandDispatcher {
     }
 
     public void dispatch(Long chatId, String text) {
-        log.info("Message from {}: {}", chatId, text);
-        try {
-            ContextType activeContext = readActiveContext.execute(chatId).orElseThrow();
+        MdcTraceId.run("cmd-" + MdcTraceId.newTraceId(), () -> {
+            log.info("Message from {}: {}", chatId, text);
+            try {
+                ContextType activeContext = readActiveContext.execute(chatId).orElseThrow();
 
-            ContextHandler handler =
-                    flowHandlerFactory.getHandler(activeContext).orElseThrow();
+                ContextHandler handler =
+                        flowHandlerFactory.getHandler(activeContext).orElseThrow();
 
-            ContextResult result = handler.handle(chatId, text);
+                ContextResult result = handler.handle(chatId, text);
 
-            if (result.handled()) {
-                messageSender.sendText(chatId, result.message());
-                if (result.isFinished()) {
+                if (result.handled()) {
+                    messageSender.sendText(chatId, result.message());
+                    if (result.isFinished()) {
+                        deleteActiveContext.execute(chatId);
+                    }
+                    return;
+                } else {
                     deleteActiveContext.execute(chatId);
                 }
-                return;
-            } else {
-                deleteActiveContext.execute(chatId);
-            }
 
-            processAsCommand(chatId, text);
-        } catch (Exception e) {
-            processAsCommand(chatId, text);
-        }
+                processAsCommand(chatId, text);
+            } catch (Exception e) {
+                log.error("Failed to handle message from {}: {}", chatId, e.getMessage(), e);
+                processAsCommand(chatId, text);
+            }
+        });
     }
 
     private void processAsCommand(Long chatId, String text) {

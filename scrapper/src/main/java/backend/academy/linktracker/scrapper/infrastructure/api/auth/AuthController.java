@@ -9,6 +9,7 @@ import backend.academy.linktracker.scrapper.infrastructure.api.auth.dtos.MeRespo
 import backend.academy.linktracker.scrapper.infrastructure.api.auth.dtos.RegisterRequest;
 import backend.academy.linktracker.scrapper.infrastructure.api.auth.dtos.TokenResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidCredentialsException;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,19 +34,32 @@ public class AuthController {
     private final AuthenticateWebUserUseCase authenticateWebUserUseCase;
     private final ReadUserService readUserService;
     private final JwtTokenService jwtTokenService;
+    private final MeterRegistry meterRegistry;
 
     @PostMapping("/register")
     public ResponseEntity<MeResponse> register(@Valid @RequestBody RegisterRequest request) {
-        User user = registerWebUserUseCase.execute(request.email(), request.password());
-        log.info("Зарегистрирован веб-пользователь {}", user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(toMe(user));
+        try {
+            User user = registerWebUserUseCase.execute(request.email(), request.password());
+            meterRegistry.counter("auth_events_total", "operation", "register", "outcome", "success").increment();
+            log.info("Registered web user {}", user.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(toMe(user));
+        } catch (RuntimeException e) {
+            meterRegistry.counter("auth_events_total", "operation", "register", "outcome", "failure").increment();
+            throw e;
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        User user = authenticateWebUserUseCase.execute(request.email(), request.password());
-        return ResponseEntity.ok(
-                new TokenResponse(jwtTokenService.issue(user.getId()), "Bearer", jwtTokenService.ttlSeconds()));
+        try {
+            User user = authenticateWebUserUseCase.execute(request.email(), request.password());
+            meterRegistry.counter("auth_events_total", "operation", "login", "outcome", "success").increment();
+            return ResponseEntity.ok(
+                    new TokenResponse(jwtTokenService.issue(user.getId()), "Bearer", jwtTokenService.ttlSeconds()));
+        } catch (InvalidCredentialsException e) {
+            meterRegistry.counter("auth_events_total", "operation", "login", "outcome", "failure").increment();
+            throw e;
+        }
     }
 
     @GetMapping("/me")

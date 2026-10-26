@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
 import backend.academy.linktracker.scrapper.application.links.usecases.UpdateTrackedLinkTimeUseCase;
 import backend.academy.linktracker.scrapper.application.notifications.usecases.SaveNotificationsUseCase;
@@ -47,7 +48,7 @@ public class LinkUpdateScheduler {
         List<Link> links = readTrackedLinkService.readExpiredLinks(properties.getBatchSize());
         if (links.isEmpty()) return;
 
-        log.info("Обработка {} ссылок", links.size());
+        log.info("Processing {} links", links.size());
 
         var futures = links.stream()
                 .map(link -> CompletableFuture.runAsync(() -> handleLink(link), executor))
@@ -57,41 +58,61 @@ public class LinkUpdateScheduler {
     }
 
     private void handleLink(Link link) {
-        try {
-            LinkUpdateReport report = linkUpdater.process(link);
-            List<UUID> userIds = readUsersUuidsByLinkIdUseCase.execute(link.getId());
-            if (userIds.isEmpty()) {
-                log.info("Ссылка {}: обновлений {}, подписчиков нет — пропуск", link.getUrl(), report.updates().size());
-                return;
-            }
-
-            List<Long> tgChatIds = resolveTelegramIds(userIds);
-
-            if (report.errorMessage() != null) {
-                log.warn("Ссылка {}: ошибка проверки '{}', рассылаю уведомление {} подписчикам (telegram: {})",
-                        link.getUrl(), report.errorMessage(), userIds.size(), tgChatIds.size());
-                notifySubscribers(
-                        link, userIds, tgChatIds, "Ошибка при проверке ссылки: " + report.errorMessage(), null);
-            } else if (report.updates().isEmpty()) {
-                log.info("Ссылка {}: обновлений нет, подписчиков {}, telegram {}",
-                        link.getUrl(), userIds.size(), tgChatIds.size());
-            } else {
-                log.info("Ссылка {}: найдено {} обновлений, подписчиков {}, telegram {}",
-                        link.getUrl(), report.updates().size(), userIds.size(), tgChatIds.size());
-                for (UpdateDescription update : report.updates()) {
-                    log.info("Ссылка {}: событие от {} ({}): {}",
-                            link.getUrl(), update.author(), update.date(), shorten(update.message()));
-                    notifySubscribers(link, userIds, tgChatIds, update.message(), update.author());
+        MdcTraceId.run("link-" + link.getId(), () -> {
+            try {
+                LinkUpdateReport report = linkUpdater.process(link);
+                List<UUID> userIds = readUsersUuidsByLinkIdUseCase.execute(link.getId());
+                if (userIds.isEmpty()) {
+                    log.info(
+                            "Link {}: {} updates, no subscribers - skipping",
+                            link.getUrl(),
+                            report.updates().size());
+                    return;
                 }
+
+                List<Long> tgChatIds = resolveTelegramIds(userIds);
+
+                if (report.errorMessage() != null) {
+                    log.warn(
+                            "Link {}: check failed '{}', notifying {} subscribers (telegram: {})",
+                            link.getUrl(),
+                            report.errorMessage(),
+                            userIds.size(),
+                            tgChatIds.size());
+                    notifySubscribers(
+                            link, userIds, tgChatIds, "Ошибка при проверке ссылки: " + report.errorMessage(), null);
+                } else if (report.updates().isEmpty()) {
+                    log.info(
+                            "Link {}: no updates, subscribers {}, telegram {}",
+                            link.getUrl(),
+                            userIds.size(),
+                            tgChatIds.size());
+                } else {
+                    log.info(
+                            "Link {}: found {} updates, subscribers {}, telegram {}",
+                            link.getUrl(),
+                            report.updates().size(),
+                            userIds.size(),
+                            tgChatIds.size());
+                    for (UpdateDescription update : report.updates()) {
+                        log.info(
+                                "Link {}: event from {} ({}): {}",
+                                link.getUrl(),
+                                update.author(),
+                                update.date(),
+                                shorten(update.message()));
+                        notifySubscribers(link, userIds, tgChatIds, update.message(), update.author());
+                    }
+                }
+
+                UpdateTimeDTO updateTimeDTO =
+                        new UpdateTimeDTO(link.getId(), !report.updates().isEmpty());
+                updateTrackedLinkTimeUseCase.execute(updateTimeDTO);
+
+            } catch (Exception e) {
+                log.error("error {}: {}", link.getUrl(), e.getMessage(), e);
             }
-
-            UpdateTimeDTO updateTimeDTO =
-                    new UpdateTimeDTO(link.getId(), !report.updates().isEmpty());
-            updateTrackedLinkTimeUseCase.execute(updateTimeDTO);
-
-        } catch (Exception e) {
-            log.error("error {}: {}", link.getUrl(), e.getMessage());
-        }
+        });
     }
 
     private String shorten(String message) {

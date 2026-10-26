@@ -15,6 +15,10 @@ spec:
     metadata:
       labels:
         app: bot
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8011"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: bot
@@ -22,11 +26,18 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+        - name: metrics
+          containerPort: 8011
         envFrom:
         - configMapRef:
             name: app-config
         - secretRef:
             name: link-tracker-secrets
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         readinessProbe:
           tcpSocket:
             port: 8080

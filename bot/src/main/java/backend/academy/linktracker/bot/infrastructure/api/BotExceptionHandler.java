@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-// Стектрейсы не отдаются в ответах наружу — они остаются в логах приложения.
 @Slf4j
 @RestControllerAdvice
 public class BotExceptionHandler {
@@ -22,7 +21,7 @@ public class BotExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
 
-        log.warn("Обработана ошибка 400: некорректные параметры запроса");
+        log.warn("Handled 400 error: invalid request parameters");
 
         return new ApiErrorResponse(
                 "Некорректные параметры запроса", "400", e.getClass().getSimpleName(), errorMessage);
@@ -31,7 +30,7 @@ public class BotExceptionHandler {
     @ExceptionHandler(RequestNotPermitted.class)
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     public ApiErrorResponse handleRateLimitException(RequestNotPermitted e) {
-        log.warn("Обработана ошибка 429: превышен лимит запросов");
+        log.warn("Handled 429 error: rate limit exceeded");
 
         return new ApiErrorResponse(
                 "Превышен лимит запросов. Попробуйте позже.", "429", "RateLimitExceededException", e.getMessage());

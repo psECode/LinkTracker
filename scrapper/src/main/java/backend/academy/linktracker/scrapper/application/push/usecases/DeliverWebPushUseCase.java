@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/**
- * Доставляет сообщение всем браузерным подпискам (Web Push) перечисленных пользователей.
- * Отправка асинхронная на виртуальных потоках, чтобы не блокировать вызывающий код.
- */
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -40,7 +37,7 @@ public class DeliverWebPushUseCase {
             }
         }
         if (scheduled > 0) {
-            log.info("Web Push запланирован для {} подписок", scheduled);
+            log.info("Web Push scheduled for {} subscriptions", scheduled);
         }
     }
 }

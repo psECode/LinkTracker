@@ -15,6 +15,10 @@ spec:
     metadata:
       labels:
         app: scrapper
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8012"
+        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: scrapper
@@ -22,12 +26,18 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
+        - name: metrics
+          containerPort: 8012
         envFrom:
         - configMapRef:
             name: app-config
         - secretRef:
             name: link-tracker-secrets
         env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         - name: SPRING_DATASOURCE_USERNAME
           valueFrom:
             secretKeyRef:

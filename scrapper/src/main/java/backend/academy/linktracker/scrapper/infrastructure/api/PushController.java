@@ -36,8 +36,7 @@ public class PushController {
     }
 
     @PostMapping("/subscribe")
-    public ResponseEntity<Void> subscribe(
-            @AuthenticationPrincipal Jwt jwt, @RequestBody PushSubscribeRequest request) {
+    public ResponseEntity<Void> subscribe(@AuthenticationPrincipal Jwt jwt, @RequestBody PushSubscribeRequest request) {
         UUID userId = UUID.fromString(jwt.getSubject());
         meterRegistry.counter("api_requests_total", "source", "web").increment();
 
@@ -49,8 +48,12 @@ public class PushController {
             return ResponseEntity.badRequest().build();
         }
 
-        subscribeWebPushUseCase.execute(userId, request.endpoint(), request.keys().p256dh(), request.keys().auth());
-        log.info("Зарегистрирована push-подписка пользователя {}", userId);
+        subscribeWebPushUseCase.execute(
+                userId,
+                request.endpoint(),
+                request.keys().p256dh(),
+                request.keys().auth());
+        log.info("Registered push subscription for user {}", userId);
         return ResponseEntity.ok().build();
     }
 
@@ -64,7 +67,7 @@ public class PushController {
         }
 
         unsubscribeWebPushUseCase.execute(request.endpoint());
-        log.info("Удалена push-подписка пользователя {}", UUID.fromString(jwt.getSubject()));
+        log.info("Deleted push subscription for user {}", UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok().build();
     }
 }

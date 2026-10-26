@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.configuration;
 
+import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.stackoverflow.entities.StackOverflowClient;
@@ -41,6 +42,13 @@ public class ClientConfiguration {
                 .baseUrl(botProperties.getUrl())
                 .requestFactory(factory)
                 .defaultHeader("X-Internal-Token", botProperties.getInternalToken())
+                .requestInterceptor((request, body, execution) -> {
+                    String traceId = MdcTraceId.current();
+                    if (traceId != null) {
+                        request.getHeaders().set("X-Request-Id", traceId);
+                    }
+                    return execution.execute(request, body);
+                })
                 .build();
 
         return HttpServiceProxyFactory.builderFor(RestClientAdapter.create(restClient))

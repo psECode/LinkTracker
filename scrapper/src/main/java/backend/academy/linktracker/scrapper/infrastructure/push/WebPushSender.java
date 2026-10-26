@@ -23,13 +23,11 @@ public class WebPushSender {
     private final PushSubscriptionRepository pushSubscriptionRepository;
     private final RestClient restClient;
 
-    public WebPushSender(
-            WebPushProperties properties, PushSubscriptionRepository pushSubscriptionRepository) {
+    public WebPushSender(WebPushProperties properties, PushSubscriptionRepository pushSubscriptionRepository) {
         this.properties = properties;
         this.pushSubscriptionRepository = pushSubscriptionRepository;
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
+        HttpClient httpClient =
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(10));
         this.restClient = RestClient.builder().requestFactory(factory).build();
@@ -44,10 +42,11 @@ public class WebPushSender {
             return;
         }
         try {
-            byte[] body = WebPushCrypto.encrypt(
-                    subscription.p256dh(), subscription.auth(), message);
+            byte[] body = WebPushCrypto.encrypt(subscription.p256dh(), subscription.auth(), message);
             String authorization = WebPushCrypto.vapidAuthorizationHeader(
-                    properties.getPrivateKey(), properties.getPublicKey(), subscription.endpoint(),
+                    properties.getPrivateKey(),
+                    properties.getPublicKey(),
+                    subscription.endpoint(),
                     properties.getSubject());
 
             ResponseEntity<Void> response = restClient
@@ -58,14 +57,13 @@ public class WebPushSender {
                     .retrieve()
                     .toBodilessEntity();
 
-            log.debug("Web Push доставлен на {}: {}", subscription.endpoint(), response.getStatusCode());
+            log.debug("Web Push delivered to {}: {}", subscription.endpoint(), response.getStatusCode());
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound
                 | org.springframework.web.client.HttpClientErrorException.Gone e) {
-            log.info("Подписка Web Push недействительна ({}), удаляю: {}", e.getStatusCode(),
-                    subscription.endpoint());
+            log.info("Web Push subscription is invalid ({}), deleting: {}", e.getStatusCode(), subscription.endpoint());
             pushSubscriptionRepository.deleteByEndpoint(subscription.endpoint());
         } catch (Exception e) {
-            log.warn("Не удалось доставить Web Push на {}: {}", subscription.endpoint(), e.getMessage());
+            log.warn("Failed to deliver Web Push to {}: {}", subscription.endpoint(), e.getMessage(), e);
         }
     }
 

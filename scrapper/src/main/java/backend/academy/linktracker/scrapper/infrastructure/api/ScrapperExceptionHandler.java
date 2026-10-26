@@ -58,9 +58,13 @@ public class ScrapperExceptionHandler {
     private ResponseEntity<ApiErrorResponse> buildResponse(
             Exception ex, HttpStatus status, String description, boolean includeDetails) {
         if (status.is5xxServerError()) {
-            log.error("Обработана ошибка {}: {}", status.value(), description, ex);
+            log.error("Handled {} error: {}", status.value(), description, ex);
         } else {
-            log.warn("Обработана ошибка {}: {} ({})", status.value(), description, ex.getClass().getSimpleName());
+            log.warn(
+                    "Handled {} error: {} ({})",
+                    status.value(),
+                    description,
+                    ex.getClass().getSimpleName());
         }
 
         ApiErrorResponse errorDTO = new ApiErrorResponse(
