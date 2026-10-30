@@ -67,3 +67,4 @@ management:
     distribution:
       percentiles-histogram:
         command_duration_ms_total: true
+        http.server.requests: true

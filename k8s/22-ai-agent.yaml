@@ -15,6 +15,10 @@ spec:
     metadata:
       labels:
         app: ai-agent
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
       - name: ai-agent
@@ -22,6 +26,7 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8082
+          name: metrics
         envFrom:
         - configMapRef:
             name: app-config
@@ -32,6 +37,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+          value: "prometheus,health"
+        - name: MANAGEMENT_METRICS_TAGS_APPLICATION
+          value: "ai-agent"
         resources:
           requests:
             cpu: 100m

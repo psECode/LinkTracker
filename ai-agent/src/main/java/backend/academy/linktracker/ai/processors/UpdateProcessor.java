@@ -1,5 +1,6 @@
 package backend.academy.linktracker.ai.processors;
 
+import backend.academy.linktracker.logging.LogArgs;
 import com.example.notification.RawUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +16,8 @@ public class UpdateProcessor {
     private final GroupingService groupingService;
 
     @KafkaListener(topics = "${app.kafka.raw-updates-topic}")
-    public void onRawUpdate(RawUpdateEvent event) {
-        log.info("Received raw update id={}", event.getId());
+   public void onRawUpdate(RawUpdateEvent event) {
+        log.info("Received raw update", LogArgs.of("update_id", event.getId()));
 
         messageProcessor.process(event).ifPresent(groupingService::add);
     }

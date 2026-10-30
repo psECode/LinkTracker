@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.application.bot.usecases;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.bot.domain.api.dtos.LinkUpdate;
 import backend.academy.linktracker.bot.domain.bot.MessageSenderService;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +15,8 @@ public class ProcessUpdateUseCase {
 
     public void execute(LinkUpdate update) {
         String messageText = String.format("Обновление: %s", update.description());
-        int recipients = update.tgChatIds() == null ? 0 : update.tgChatIds().size();
-        log.info("Delivering update id={} to Telegram: {} recipients", update.id(), recipients);
+       int recipients = update.tgChatIds() == null ? 0 : update.tgChatIds().size();
+        log.info("Delivering update to Telegram", LogArgs.of("update_id", update.id(), "recipients", recipients));
 
         for (Long chatId : update.tgChatIds()) {
             messageSender.sendText(chatId, messageText);

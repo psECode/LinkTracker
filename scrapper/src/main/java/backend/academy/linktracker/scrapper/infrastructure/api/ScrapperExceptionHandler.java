@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.ApiErrorResponse;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidCredentialsException;
 import backend.academy.linktracker.scrapper.infrastructure.api.errors.InvalidLinkException;
@@ -23,48 +24,46 @@ public class ScrapperExceptionHandler {
     @ExceptionHandler({UserNotFoundException.class, LinkNotFoundException.class, SubscriptionNotFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
         return buildResponse(ex, HttpStatus.NOT_FOUND, "Запрашиваемый ресурс не найден", true);
-    }
+   }
 
     @ExceptionHandler({LinkAlreadyTrackedException.class, UserAlreadyExistsException.class})
     public ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException ex) {
         return buildResponse(ex, HttpStatus.CONFLICT, "Ресурс уже существует", true);
-    }
+   }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         return buildResponse(ex, HttpStatus.UNAUTHORIZED, "Ошибка аутентификации", true);
-    }
+   }
 
     @ExceptionHandler({IllegalArgumentException.class, InvalidLinkException.class})
     public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
         return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса", true);
-    }
+   }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректные параметры запроса", true);
-    }
+   }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
         return buildResponse(ex, HttpStatus.BAD_REQUEST, "Некорректное тело запроса", false);
-    }
+   }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleInternalError(Exception ex) {
         return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", false);
-    }
+   }
 
     private ResponseEntity<ApiErrorResponse> buildResponse(
             Exception ex, HttpStatus status, String description, boolean includeDetails) {
         if (status.is5xxServerError()) {
-            log.error("Handled {} error: {}", status.value(), description, ex);
-        } else {
+            log.error("Handled API error", LogArgs.of("status", status.value(), "description", description), ex);
+       } else {
             log.warn(
-                    "Handled {} error: {} ({})",
-                    status.value(),
-                    description,
-                    ex.getClass().getSimpleName());
+                    "Handled API error",
+                   LogArgs.of("status", status.value(), "description", description, "exception", ex.getClass().getSimpleName()));
         }
 
         ApiErrorResponse errorDTO = new ApiErrorResponse(

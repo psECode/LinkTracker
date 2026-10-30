@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.infrastructure.bot;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.bot.domain.bot.MessageSenderService;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -15,21 +16,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @SuppressWarnings("deprecation")
 public class TelegramMessageSender implements MessageSenderService {
-    private final MeterRegistry meterRegistry;
+   private final MeterRegistry meterRegistry;
     private final TelegramBot bot;
 
     @Override
     @CircuitBreaker(name = "telegramCB")
-    @Retry(name = "telegramRetry")
-    public void sendText(Long chatId, String text) {
+   @Retry(name = "telegramRetry")
+   public void sendText(Long chatId, String text) {
         SendMessage request = new SendMessage(chatId, text);
         var response = bot.execute(request);
 
         if (!response.isOk()) {
-            log.error("Failed to send message: {}", response.description());
-            throw new RuntimeException("Telegram API error: " + response.errorCode());
-        }
-        log.info("Message sent to Telegram chatId={}", chatId);
-        meterRegistry.counter("sent_notification_total").increment();
+            log.error("Failed to send message", LogArgs.of("error", response.description()));
+           throw new RuntimeException("Telegram API error: " + response.errorCode());
+       }
+        log.info("Message sent to Telegram", LogArgs.of("chat_id", chatId));
+       meterRegistry.counter("sent_notification_total").increment();
     }
 }

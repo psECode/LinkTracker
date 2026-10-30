@@ -1,0 +1,75 @@
+{
+  "title": "Link Tracker · Bot",
+  "uid": "link-tracker-bot",
+  "tags": ["bot", "telegram"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Состояние бота",
+      "description": "up таргета скрейпа метрик бота (:8011/metrics)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "refId": "A", "expr": "avg_over_time(up{pod=~\"bot-.*\"}[5m])" }],
+      "fieldConfig": { "defaults": { "decimals": 0, "min": 0, "max": 1, "mappings": [ {"type": "value", "options": { "1": {"text": "up", "color": "green"}, "0": {"text": "down", "color": "red"}}} ], "thresholds": { "mode": "absolute", "steps": [ {"color": "red", "value": null}, {"color": "green", "value": 0.98} ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "justifyMode": "center" }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Команды, rps",
+      "description": "command_requests_total по типам команд (значение появится после использования бота)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "refId": "A", "expr": "sum(rate(command_requests_total{application=\"bot\"}[5m]))" }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "decimals": 2, "noValue": "нет данных" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Latency команд p95",
+      "description": "p95 command_duration_ms_total по типам команд",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(command_duration_ms_total_seconds_bucket{application=\"bot\"}[5m])) by (le))" }],
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 2, "noValue": "нет данных", "thresholds": { "mode": "absolute", "steps": [ {"color": "green", "value": null}, {"color": "red", "value": 3} ] } }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
+    },
+    {
+      "id": 4, "type": "stat", "title": "Отправлено уведомлений (30d)",
+      "description": "sent_notification_total — дельта за 30 дней",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "refId": "A", "expr": "sum(increase(sent_notification_total{application=\"bot\"}[30d]))" }],
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "noValue": "нет данных" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area", "justifyMode": "auto" }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Команды по типам",
+      "description": "rate command_requests_total по команде",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "refId": "A", "expr": "sum(rate(command_requests_total{application=\"bot\"}[5m])) by (command)", "legendFormat": "{{command}}" }],
+      "fieldConfig": { "defaults": { "unit": "reqps", "noValue": "нет данных" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "p95 latency по командам",
+      "description": "histogram_quantile по command_duration_ms_total_seconds_bucket",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [{ "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(command_duration_ms_total_seconds_bucket{application=\"bot\"}[5m])) by (le, scope_type))", "legendFormat": "{{scope_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "s", "noValue": "нет данных" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "JVM heap к максимуму",
+      "description": "heap/max по процессам бота",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [{ "refId": "A", "expr": "jvm_memory_used_bytes{application=\"bot\", area=\"heap\"} / jvm_memory_max_bytes{application=\"bot\", area=\"heap\"}", "legendFormat": "{{pod}}" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1, "custom": { "thresholdsStyle": { "mode": "dashed+lines" } }, "thresholds": { "mode": "absolute", "steps": [ {"color": "green", "value": null}, {"color": "red", "value": 0.9} ] } }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 8, "type": "logs", "title": "Логи бота",
+      "description": "Victoria Logs: структурные логи бота (args.<имя> — параметры)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
+      "targets": [{ "refId": "A", "expr": "{service.name=\"bot\"}" }]
+    }
+  ]
+}

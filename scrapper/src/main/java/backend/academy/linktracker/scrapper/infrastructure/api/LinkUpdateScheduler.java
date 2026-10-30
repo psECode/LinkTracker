@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.application.links.usecases.ReadTrackedLinkService;
 import backend.academy.linktracker.scrapper.application.links.usecases.UpdateTrackedLinkTimeUseCase;
@@ -44,13 +45,13 @@ public class LinkUpdateScheduler {
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @Scheduled(fixedDelayString = "${app.scheduler.interval}")
-    public void update() {
+   public void update() {
         List<Link> links = readTrackedLinkService.readExpiredLinks(properties.getBatchSize());
         if (links.isEmpty()) return;
 
-        log.info("Processing {} links", links.size());
+        log.info("Processing links", LogArgs.of("count", links.size()));
 
-        var futures = links.stream()
+       var futures = links.stream()
                 .map(link -> CompletableFuture.runAsync(() -> handleLink(link), executor))
                 .toArray(CompletableFuture[]::new);
 
@@ -59,13 +60,13 @@ public class LinkUpdateScheduler {
 
     private void handleLink(Link link) {
         MdcTraceId.run("link-" + link.getId(), () -> {
-            try {
+           try {
                 LinkUpdateReport report = linkUpdater.process(link);
                 List<UUID> userIds = readUsersUuidsByLinkIdUseCase.execute(link.getId());
                 if (userIds.isEmpty()) {
                     log.info(
                             "Link {}: {} updates, no subscribers - skipping",
-                            link.getUrl(),
+                           link.getUrl(),
                             report.updates().size());
                     return;
                 }
@@ -75,29 +76,29 @@ public class LinkUpdateScheduler {
                 if (report.errorMessage() != null) {
                     log.warn(
                             "Link {}: check failed '{}', notifying {} subscribers (telegram: {})",
-                            link.getUrl(),
+                           link.getUrl(),
                             report.errorMessage(),
                             userIds.size(),
                             tgChatIds.size());
                     notifySubscribers(
                             link, userIds, tgChatIds, "Ошибка при проверке ссылки: " + report.errorMessage(), null);
-                } else if (report.updates().isEmpty()) {
+               } else if (report.updates().isEmpty()) {
                     log.info(
                             "Link {}: no updates, subscribers {}, telegram {}",
-                            link.getUrl(),
+                           link.getUrl(),
                             userIds.size(),
                             tgChatIds.size());
                 } else {
                     log.info(
                             "Link {}: found {} updates, subscribers {}, telegram {}",
-                            link.getUrl(),
+                           link.getUrl(),
                             report.updates().size(),
                             userIds.size(),
                             tgChatIds.size());
                     for (UpdateDescription update : report.updates()) {
                         log.info(
                                 "Link {}: event from {} ({}): {}",
-                                link.getUrl(),
+                               link.getUrl(),
                                 update.author(),
                                 update.date(),
                                 shorten(update.message()));
@@ -110,14 +111,14 @@ public class LinkUpdateScheduler {
                 updateTrackedLinkTimeUseCase.execute(updateTimeDTO);
 
             } catch (Exception e) {
-                log.error("error {}: {}", link.getUrl(), e.getMessage(), e);
-            }
+                log.error("Link check failed", LogArgs.of("link", link.getUrl(), "error", e.getMessage()), e);
+           }
         });
     }
 
     private String shorten(String message) {
         String oneLine = message.replace(System.lineSeparator(), " | ");
-        return oneLine.length() <= 120 ? oneLine : oneLine.substring(0, 117) + "...";
+       return oneLine.length() <= 120 ? oneLine : oneLine.substring(0, 117) + "...";
     }
 
     private void notifySubscribers(Link link, List<UUID> userIds, List<Long> tgChatIds, String message, String author)

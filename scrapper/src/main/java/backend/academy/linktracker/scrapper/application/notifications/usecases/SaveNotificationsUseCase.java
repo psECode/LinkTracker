@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.application.notifications.usecases;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.application.push.usecases.DeliverWebPushUseCase;
 import backend.academy.linktracker.scrapper.domain.notifications.NotificationRepository;
 import backend.academy.linktracker.scrapper.domain.notifications.dtos.CreateNotificationDTO;
@@ -27,7 +28,7 @@ public class SaveNotificationsUseCase {
                 .toList();
 
         notificationRepository.saveAll(dtos);
-        log.info("Saved {} notifications to inbox for link {}", dtos.size(), linkId);
+        log.info("Saved notifications to inbox", LogArgs.of("count", dtos.size(), "link_id", linkId));
 
         deliverWebPushUseCase.execute(userIds, message);
     }

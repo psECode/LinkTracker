@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.track.usecases.SaveTrackContextUseCase;
 import backend.academy.linktracker.bot.application.context.usecases.SetActiveContextUseCase;
@@ -33,14 +34,14 @@ public class TrackCommand implements CommandInterface {
     public String execute(Long chatId, String text) {
         String[] parts = text.trim().split("\\s+", 3);
 
-        if (parts.length == 1) {
+       if (parts.length == 1) {
             setActiveContext.execute(chatId, ContextType.TRACK);
             saveTrackContext.execute(TrackContext.builder()
                     .chatId(chatId)
                     .step(TrackStep.AWAITING_LINK)
                     .build());
             return messageSource.getMessage("bot.command.track.start", null, Locale.of("ru"));
-        }
+       }
 
         return executeImmediately(parts, chatId);
     }
@@ -48,7 +49,7 @@ public class TrackCommand implements CommandInterface {
     public String executeImmediately(String[] parts, Long chatId) {
         for (String part : parts) {
             System.out.println(part + " ");
-        }
+       }
         String link = parts[1];
         List<String> tags = (parts.length > 2) ? TagsParsingUtil.parseTags(parts[2]) : List.of();
 
@@ -56,17 +57,17 @@ public class TrackCommand implements CommandInterface {
         try {
             scrapperClient.addLink(chatId, req);
             String tagsString = String.join(", ", tags);
-            return messageSource.getMessage("bot.command.track.add", new Object[] {link, tagsString}, Locale.of("ru"));
-        } catch (HttpClientErrorException.Conflict e) {
+           return messageSource.getMessage("bot.command.track.add", new Object[] {link, tagsString}, Locale.of("ru"));
+       } catch (HttpClientErrorException.Conflict e) {
             return messageSource.getMessage("bot.error.link_already_tracked", new Object[] {link}, Locale.of("ru"));
 
-        } catch (HttpClientErrorException.NotFound e) {
+       } catch (HttpClientErrorException.NotFound e) {
             return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
 
-        } catch (Exception e) {
-            log.warn("Failed to add link {}: {}", link, e.getMessage(), e);
-            return messageSource.getMessage("bot.error", null, Locale.of("ru"));
-        }
+       } catch (Exception e) {
+            log.warn("Failed to add link", LogArgs.of("link", link, "error", e.getMessage()), e);
+           return messageSource.getMessage("bot.error", null, Locale.of("ru"));
+       }
     }
 
     @Override
@@ -77,7 +78,7 @@ public class TrackCommand implements CommandInterface {
     @Override
     public String getMenuName() {
         return "track";
-    }
+   }
 
     @Override
     public String getMenuDescription() {

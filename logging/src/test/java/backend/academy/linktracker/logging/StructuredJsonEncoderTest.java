@@ -28,13 +28,13 @@ class StructuredJsonEncoderTest {
     }
 
     @Test
-    void shouldEncodeRecordWithTemplateMessageAndArgs() throws Exception {
+    void shouldEncodeRecordWithFormattedMessageAndArgs() throws Exception {
         LoggingEvent event = event(Level.INFO, "Message from {}: {}", new Object[] {12345L, "hello"});
 
         JsonNode record = mapper.readTree(encoder.encode(event));
 
         assertEquals("INFO", record.path("level").asText());
-        assertEquals("Message from {}: {}", record.path("message").asText());
+        assertEquals("Message from 12345: hello", record.path("message").asText());
         assertEquals(12345L, record.path("args").get(0).asLong());
         assertEquals("hello", record.path("args").get(1).asText());
         assertEquals("test-service", record.path("service.name").asText());
@@ -86,7 +86,34 @@ class StructuredJsonEncoderTest {
 
         JsonNode record = mapper.readTree(encoder.encode(event));
 
+        assertEquals("simple message", record.path("message").asText());
         assertTrue(record.path("args").isMissingNode());
+    }
+
+    @Test
+    void shouldSerializeNamedArgsAsObject() throws Exception {
+        LoggingEvent event = event(
+                Level.INFO, "Handled {} error: {}",
+                new Object[] {LogArgs.of("status", 401, "description", "Ошибка аутентификации")});
+
+        JsonNode record = mapper.readTree(encoder.encode(event));
+
+        assertTrue(record.path("args").isObject(), "args должен быть объектом при именованных полях");
+        assertEquals(401, record.path("args").path("status").asInt());
+        assertEquals("Ошибка аутентификации", record.path("args").path("description").asText());
+    }
+
+    @Test
+    void shouldMixNamedAndPositionalArgs() throws Exception {
+        LoggingEvent event = event(
+                Level.INFO, "Message from {}: {}",
+                new Object[] {12345L, LogArgs.of("command", "/help")});
+
+        JsonNode record = mapper.readTree(encoder.encode(event));
+
+        assertTrue(record.path("args").isObject());
+        assertEquals(12345L, record.path("args").path("arg0").asLong());
+        assertEquals("/help", record.path("args").path("command").asText());
     }
 
     @Test

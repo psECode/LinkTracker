@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.configuration;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.bot.domain.bot.CommandInterface;
 import backend.academy.linktracker.bot.properties.TelegramProperties;
 import com.pengrad.telegrambot.TelegramBot;
@@ -32,12 +33,12 @@ public class TelegramConfiguration {
 
     @Bean
     @Profile("!test")
-    public CommandLineRunner menuInitializer(TelegramBot bot, List<CommandInterface> commands) {
+   public CommandLineRunner menuInitializer(TelegramBot bot, List<CommandInterface> commands) {
         return args -> {
             try {
                 log.info("Setting up Telegram command menu...");
 
-                BotCommand[] botCommands = commands.stream()
+               BotCommand[] botCommands = commands.stream()
                         .filter(cmd -> cmd.getMenuName() != null)
                         .map(cmd -> new BotCommand(cmd.getMenuName(), cmd.getMenuDescription()))
                         .toArray(BotCommand[]::new);
@@ -47,9 +48,9 @@ public class TelegramConfiguration {
                     BaseResponse response = bot.execute(request);
                     if (response.isOk()) {
                         log.info("Telegram command menu updated");
-                    } else {
-                        log.error("Failed to update Telegram command menu: {}", response.description());
-                    }
+                   } else {
+                        log.error("Failed to update Telegram command menu", LogArgs.of("error", response.description()));
+                   }
                 }
             } catch (Exception e) {
                 log.error(

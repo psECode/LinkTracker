@@ -1,0 +1,175 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmalert-rules
+  namespace: link-tracker
+  labels:
+    app: vmalert
+data:
+  slo-rules.yaml: |
+    groups:
+      - name: slo-availability
+        interval: 30s
+        rules:
+          - alert: ScrapperHigh5xxRatio
+            expr: |
+              (sum(rate(http_server_requests_seconds_count{application="scrapper",status=~"5.."}[15m])) or vector(0))
+                / sum(rate(http_server_requests_seconds_count{application="scrapper"}[15m])) > 0.05
+            for: 5m
+            labels:
+              severity: page
+              slo: availability
+            annotations:
+              summary: "Доля 5xx у scrapper > 5% (SLO-бюджет)"
+              description: "SLI доступности ниже цели 95% на окне 15m."
+          - alert: ScrapperErrorBudgetFastBurn
+            expr: |
+              ((sum(rate(http_server_requests_seconds_count{application="scrapper",status=~"5.."}[1h])) or vector(0))
+                / sum(rate(http_server_requests_seconds_count{application="scrapper"}[1h]))) > 0.07
+            for: 5m
+            labels:
+              severity: page
+              slo: availability
+            annotations:
+              summary: "Burn rate доступности 14x — бюджет будет исчерпан за ~2 дня"
+              description: "Ошибка за 1h > 7% при бюджете 5% на 30d."
+
+      - name: slo-latency
+        interval: 30s
+        rules:
+          - alert: ScrapperLatencyP95High
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(http_server_requests_seconds_bucket{application="scrapper",uri=~"/api/.*|/auth/.*"}[15m])) by (le)
+              ) > 1
+            for: 10m
+            labels:
+              severity: warn
+              slo: latency
+            annotations:
+              summary: "p95 latency основных ручек scrapper > 1s"
+          - alert: BotCommandLatencyP95High
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(command_duration_ms_total_seconds_bucket{application="bot"}[15m])) by (le)
+              ) > 3
+            for: 10m
+            labels:
+              severity: warn
+              slo: latency
+            annotations:
+              summary: "p95 выполнения команд бота > 3s"
+
+      - name: slo-correctness
+        interval: 30s
+        rules:
+          - alert: LinksProcessingFailuresHigh
+            expr: |
+              sum(rate(links_tracked_total{application="scrapper",outcome="success"}[15m])) by (operation)
+                / sum(rate(links_tracked_total{application="scrapper"}[15m])) by (operation) < 0.95
+            for: 10m
+            labels:
+              severity: warn
+              slo: correctness
+            annotations:
+              summary: "Успешных обработок ссылок ({{ $labels.operation }}) < 95%"
+          - alert: BotCommandFailuresHigh
+            expr: |
+              sum(rate(command_requests_total{application="bot",outcome="success"}[15m])) by (command)
+                / sum(rate(command_requests_total{application="bot"}[15m])) by (command) < 0.95
+            for: 10m
+            labels:
+              severity: warn
+              slo: correctness
+            annotations:
+              summary: "Успешных команд бота ({{ $labels.command }}) < 95%"
+
+      - name: slo-liveness-resources
+        interval: 30s
+        rules:
+          - alert: ServiceDown
+            expr: up{namespace="link-tracker", pod=~"(scrapper|bot).*"} == 0
+            for: 2m
+            labels:
+              severity: page
+              slo: liveness
+            annotations:
+              summary: "Сервис {{ $labels.pod }} не отвечает скрейпу"
+          - alert: JVMHeapHigh
+            expr: |
+              jvm_memory_used_bytes{application=~"scrapper|bot", area="heap"}
+                / jvm_memory_max_bytes{application=~"scrapper|bot", area="heap"} > 0.9
+            for: 10m
+            labels:
+              severity: warn
+              slo: resources
+            annotations:
+              summary: "JVM heap {{ $labels.application }} > 90% максимума"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vmalert
+  namespace: link-tracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vmalert
+  template:
+    metadata:
+      labels:
+        app: vmalert
+    spec:
+      containers:
+        - name: vmalert
+          image: victoriametrics/vmalert:v1.136.0
+          args:
+            - -datasource.url=http://vmsingle-victoria-metrics-single-server.default.svc.cluster.local:8428
+            - -notifier.url=http://vmsingle-victoria-metrics-single-server.default.svc.cluster.local:8428
+            - -rule=/etc/vmalert/slo-rules.yaml
+            - -evaluationInterval=30s
+            - -httpListenAddr=:8888
+          ports:
+            - containerPort: 8888
+              name: http
+          volumeMounts:
+            - name: rules
+              mountPath: /etc/vmalert
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: rules
+          configMap:
+            name: vmalert-rules
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert
+  namespace: link-tracker
+spec:
+  selector:
+    app: vmalert
+  ports:
+    - port: 8888
+      targetPort: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmalert-nodeport
+  namespace: link-tracker
+spec:
+  type: NodePort
+  selector:
+    app: vmalert
+  ports:
+    - port: 8888
+      targetPort: 8888
+      nodePort: 30501

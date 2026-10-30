@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api.auth;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.application.users.usecases.AuthenticateWebUserUseCase;
 import backend.academy.linktracker.scrapper.application.users.usecases.ReadUserService;
 import backend.academy.linktracker.scrapper.application.users.usecases.RegisterWebUserUseCase;
@@ -30,40 +31,40 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final RegisterWebUserUseCase registerWebUserUseCase;
+   private final RegisterWebUserUseCase registerWebUserUseCase;
     private final AuthenticateWebUserUseCase authenticateWebUserUseCase;
     private final ReadUserService readUserService;
     private final JwtTokenService jwtTokenService;
     private final MeterRegistry meterRegistry;
 
     @PostMapping("/register")
-    public ResponseEntity<MeResponse> register(@Valid @RequestBody RegisterRequest request) {
+   public ResponseEntity<MeResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
             User user = registerWebUserUseCase.execute(request.email(), request.password());
             meterRegistry.counter("auth_events_total", "operation", "register", "outcome", "success").increment();
-            log.info("Registered web user {}", user.getId());
-            return ResponseEntity.status(HttpStatus.CREATED).body(toMe(user));
+           log.info("Registered web user", LogArgs.of("user_id", user.getId()));
+           return ResponseEntity.status(HttpStatus.CREATED).body(toMe(user));
         } catch (RuntimeException e) {
             meterRegistry.counter("auth_events_total", "operation", "register", "outcome", "failure").increment();
-            throw e;
+           throw e;
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+   public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         try {
             User user = authenticateWebUserUseCase.execute(request.email(), request.password());
             meterRegistry.counter("auth_events_total", "operation", "login", "outcome", "success").increment();
-            return ResponseEntity.ok(
+           return ResponseEntity.ok(
                     new TokenResponse(jwtTokenService.issue(user.getId()), "Bearer", jwtTokenService.ttlSeconds()));
-        } catch (InvalidCredentialsException e) {
+       } catch (InvalidCredentialsException e) {
             meterRegistry.counter("auth_events_total", "operation", "login", "outcome", "failure").increment();
-            throw e;
+           throw e;
         }
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MeResponse> me(@AuthenticationPrincipal Jwt jwt) {
+   public ResponseEntity<MeResponse> me(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         User user = readUserService
                 .readByUUID(userId)

@@ -1,5 +1,6 @@
 package backend.academy.linktracker.bot.application.bot.commands;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.bot.application.api.ScrapperServiceInterface;
 import backend.academy.linktracker.bot.application.context.LinkListFormattingUtil;
 import backend.academy.linktracker.bot.application.context.untrack.usecases.SaveUntrackContextUseCase;
@@ -37,8 +38,8 @@ public class UntrackCommand implements CommandInterface {
     @Override
     public String execute(Long chatId, String text) {
         String[] parts = text.trim().split("\\s+", 2);
-        System.out.println("here");
-        try {
+       System.out.println("here");
+       try {
             if (parts.length == 1) {
                 return startUntrackContext(chatId);
             }
@@ -48,15 +49,15 @@ public class UntrackCommand implements CommandInterface {
             ApiErrorResponse errorBody = parseError(e);
 
             if (errorBody != null && "UserNotFoundException".equals(errorBody.exceptionName())) {
-                return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
-            }
+               return messageSource.getMessage("bot.error.user_not_found", null, Locale.of("ru"));
+           }
 
             return messageSource.getMessage("bot.error.link_not_found", null, Locale.of("ru"));
 
-        } catch (Exception e) {
-            log.warn("Failed to unsubscribe from link: {}", e.getMessage(), e);
-            return messageSource.getMessage("bot.error", null, Locale.of("ru"));
-        }
+       } catch (Exception e) {
+            log.warn("Failed to unsubscribe from link", LogArgs.of("error", e.getMessage()), e);
+           return messageSource.getMessage("bot.error", null, Locale.of("ru"));
+       }
     }
 
     private String startUntrackContext(Long chatId) {
@@ -64,7 +65,7 @@ public class UntrackCommand implements CommandInterface {
         ListLinksResponse response = scrapperClient.getAllLinks(chatId);
         if (response.links().isEmpty()) {
             return messageSource.getMessage("bot.command.list.empty", null, Locale.of("ru"));
-        }
+       }
 
         setActiveContext.execute(chatId, ContextType.UNTRACK);
         UntrackContext context = UntrackContext.builder()
@@ -76,13 +77,13 @@ public class UntrackCommand implements CommandInterface {
 
         String listText = LinkListFormattingUtil.execute(response.links());
         return listText + "\n\n" + messageSource.getMessage("bot.command.untrack.start", null, Locale.of("ru"));
-    }
+   }
 
     private String executeImmediately(Long chatId, String link) {
         scrapperClient.removeLink(chatId, new RemoveLinkRequest(URI.create(link)));
 
         return messageSource.getMessage("bot.command.untrack.success", new Object[] {link}, Locale.of("ru"));
-    }
+   }
 
     private ApiErrorResponse parseError(HttpClientErrorException e) {
         try {
@@ -100,7 +101,7 @@ public class UntrackCommand implements CommandInterface {
     @Override
     public String getMenuName() {
         return "untrack";
-    }
+   }
 
     @Override
     public String getMenuDescription() {

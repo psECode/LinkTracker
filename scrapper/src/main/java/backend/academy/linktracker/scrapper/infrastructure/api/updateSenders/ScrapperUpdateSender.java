@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api.updateSenders;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.LinkUpdate;
 import backend.academy.linktracker.scrapper.properties.AppProperties;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -18,7 +19,7 @@ public class ScrapperUpdateSender implements LinkUpdateSender {
     @Override
     @SneakyThrows
     @CircuitBreaker(name = "botUpdateCB", fallbackMethod = "useKafkaFallback")
-    public void send(LinkUpdate update) {
+   public void send(LinkUpdate update) {
         if (properties.isUseQueue()) {
             kafkaSender.send(update);
         } else {
@@ -28,7 +29,7 @@ public class ScrapperUpdateSender implements LinkUpdateSender {
 
     @SneakyThrows
     public void useKafkaFallback(LinkUpdate update, Throwable t) {
-        log.error("Falling back to Kafka. Reason: {}", t.getMessage());
+        log.error("Falling back to Kafka", LogArgs.of("reason", t.getMessage()));
         kafkaSender.send(update);
     }
 }

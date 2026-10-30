@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.application.push.usecases;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.domain.push.PushSubscription;
 import backend.academy.linktracker.scrapper.domain.push.PushSubscriptionRepository;
 import backend.academy.linktracker.scrapper.infrastructure.push.WebPushSender;
@@ -37,7 +38,7 @@ public class DeliverWebPushUseCase {
             }
         }
         if (scheduled > 0) {
-            log.info("Web Push scheduled for {} subscriptions", scheduled);
+            log.info("Web Push subscriptions scheduled", LogArgs.of("count", scheduled));
         }
     }
 }

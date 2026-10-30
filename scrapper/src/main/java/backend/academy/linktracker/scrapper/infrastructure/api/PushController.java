@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.application.push.usecases.SubscribeWebPushUseCase;
 import backend.academy.linktracker.scrapper.application.push.usecases.UnsubscribeWebPushUseCase;
 import backend.academy.linktracker.scrapper.infrastructure.api.dtos.PushPublicKeyResponse;
@@ -25,22 +26,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PushController {
 
-    private final SubscribeWebPushUseCase subscribeWebPushUseCase;
+   private final SubscribeWebPushUseCase subscribeWebPushUseCase;
     private final UnsubscribeWebPushUseCase unsubscribeWebPushUseCase;
     private final WebPushProperties webPushProperties;
     private final MeterRegistry meterRegistry;
 
     @GetMapping("/key")
-    public ResponseEntity<PushPublicKeyResponse> publicKey() {
+   public ResponseEntity<PushPublicKeyResponse> publicKey() {
         return ResponseEntity.ok(new PushPublicKeyResponse(webPushProperties.getPublicKey()));
     }
 
     @PostMapping("/subscribe")
-    public ResponseEntity<Void> subscribe(@AuthenticationPrincipal Jwt jwt, @RequestBody PushSubscribeRequest request) {
+   public ResponseEntity<Void> subscribe(@AuthenticationPrincipal Jwt jwt, @RequestBody PushSubscribeRequest request) {
         UUID userId = UUID.fromString(jwt.getSubject());
         meterRegistry.counter("api_requests_total", "source", "web").increment();
 
-        if (request.endpoint() == null
+       if (request.endpoint() == null
                 || request.endpoint().isBlank()
                 || request.keys() == null
                 || request.keys().p256dh() == null
@@ -53,21 +54,21 @@ public class PushController {
                 request.endpoint(),
                 request.keys().p256dh(),
                 request.keys().auth());
-        log.info("Registered push subscription for user {}", userId);
-        return ResponseEntity.ok().build();
+        log.info("Registered push subscription", LogArgs.of("user_id", userId));
+       return ResponseEntity.ok().build();
     }
 
     @PostMapping("/unsubscribe")
-    public ResponseEntity<Void> unsubscribe(
+   public ResponseEntity<Void> unsubscribe(
             @AuthenticationPrincipal Jwt jwt, @RequestBody PushUnsubscribeRequest request) {
         meterRegistry.counter("api_requests_total", "source", "web").increment();
 
-        if (request.endpoint() == null || request.endpoint().isBlank()) {
+       if (request.endpoint() == null || request.endpoint().isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
         unsubscribeWebPushUseCase.execute(request.endpoint());
-        log.info("Deleted push subscription for user {}", UUID.fromString(jwt.getSubject()));
+        log.info("Deleted push subscription", LogArgs.of("user_id", UUID.fromString(jwt.getSubject())));
         return ResponseEntity.ok().build();
     }
 }

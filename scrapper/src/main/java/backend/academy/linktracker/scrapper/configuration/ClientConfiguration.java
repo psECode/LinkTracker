@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.configuration;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.infrastructure.api.BotClient;
 import backend.academy.linktracker.scrapper.infrastructure.api.checkers.github.entities.GithubClient;
@@ -42,11 +43,11 @@ public class ClientConfiguration {
                 .baseUrl(botProperties.getUrl())
                 .requestFactory(factory)
                 .defaultHeader("X-Internal-Token", botProperties.getInternalToken())
-                .requestInterceptor((request, body, execution) -> {
+               .requestInterceptor((request, body, execution) -> {
                     String traceId = MdcTraceId.current();
                     if (traceId != null) {
                         request.getHeaders().set("X-Request-Id", traceId);
-                    }
+                   }
                     return execution.execute(request, body);
                 })
                 .build();
@@ -58,14 +59,14 @@ public class ClientConfiguration {
 
     @Bean
     public GithubClient githubClient(@Value("${app.github.url:https://api.github.com}") String baseUrl) {
-        RestClient.Builder builder = RestClient.builder()
+       RestClient.Builder builder = RestClient.builder()
                 .baseUrl(baseUrl)
                 .requestFactory(timedRequestFactory(githubProperties.getTimeout()))
                 .defaultHeader("User-Agent", "LinkTrackerBot");
 
-        if (githubProperties.getToken() != null && !githubProperties.getToken().isBlank()) {
+       if (githubProperties.getToken() != null && !githubProperties.getToken().isBlank()) {
             builder.defaultHeader("Authorization", "Bearer " + githubProperties.getToken());
-        }
+       }
 
         return createClient(GithubClient.class, builder.build());
     }
@@ -74,25 +75,25 @@ public class ClientConfiguration {
     public StackOverflowClient stackoverflowClient(
             @Value("${app.stackoverflow.url:https://api.stackexchange.com/2.3/}") String baseUrl) {
 
-        UriComponentsBuilder uriBuilder =
+       UriComponentsBuilder uriBuilder =
                 UriComponentsBuilder.fromUriString(baseUrl).queryParam("site", "stackoverflow");
 
-        String key = stackoverflowProperties.getKey();
+       String key = stackoverflowProperties.getKey();
         if (key != null) {
             uriBuilder.queryParam("key", key);
-        }
+       }
 
         String token = stackoverflowProperties.getAccessToken();
         if (token != null) {
             uriBuilder.queryParam("access_token", token);
-        }
+       }
 
         RestClient restClient = RestClient.builder()
                 .baseUrl(uriBuilder.build().toUriString())
                 .requestFactory(timedRequestFactory(stackoverflowProperties.getTimeout()))
                 .defaultHeader("User-Agent", "LinkTrackerBot")
-                .requestInterceptor((request, body, execution) -> {
-                    log.info("Requesting StackExchange API: {}", request.getURI());
+               .requestInterceptor((request, body, execution) -> {
+                    log.info("Requesting StackExchange API", LogArgs.of("uri", request.getURI()));
                     return execution.execute(request, body);
                 })
                 .build();

@@ -110,6 +110,45 @@ class DispatcherTest {
         thenMessageShouldBeSent();
     }
 
+    @Test
+    void commandSuccessIncrementsOutcomeSuccessCounter() {
+        givenNoActiveContext();
+        givenMessage("bot.command.help.message");
+
+        dispatcher.dispatch(chatId, "/help");
+
+        double success = meterRegistry
+                .counter("command_requests_total", "command", "HELP", "outcome", "success")
+                .count();
+        double failure = meterRegistry
+                .counter("command_requests_total", "command", "HELP", "outcome", "failure")
+                .count();
+        org.assertj.core.api.Assertions.assertThat(success).isEqualTo(1.0);
+        org.assertj.core.api.Assertions.assertThat(failure).isEqualTo(0.0);
+    }
+
+    @Test
+    void commandFailureIncrementsOutcomeFailureCounter() {
+        givenNoActiveContext();
+        when(messageSource.getMessage(eq("bot.command.help.message"), any(), any()))
+                .thenThrow(new IllegalStateException("boom"));
+
+        try {
+            dispatcher.dispatch(chatId, "/help");
+        } catch (IllegalStateException expected) {
+            // улетаем в диспатч
+        }
+
+        double failure = meterRegistry
+                .counter("command_requests_total", "command", "HELP", "outcome", "failure")
+                .count();
+        double success = meterRegistry
+                .counter("command_requests_total", "command", "HELP", "outcome", "success")
+                .count();
+        org.assertj.core.api.Assertions.assertThat(failure).isEqualTo(1.0);
+        org.assertj.core.api.Assertions.assertThat(success).isEqualTo(0.0);
+    }
+
     private void givenNoActiveContext() {
         when(readActiveContext.execute(chatId)).thenReturn(Optional.empty());
     }

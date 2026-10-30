@@ -67,10 +67,7 @@ public class StructuredJsonEncoder extends EncoderBase<ILoggingEvent> {
             record.put("level", event.getLevel().toString());
             record.put("message", masker.mask(messageOf(event)));
 
-            ArrayNode args = putArgs(record, event.getArgumentArray());
-            if (args != null && !args.isEmpty()) {
-                record.set("args", args);
-            }
+            putArgs(record, event.getArgumentArray());
 
             record.put("logger", event.getLoggerName());
             record.put("thread", event.getThreadName());
@@ -102,25 +99,60 @@ public class StructuredJsonEncoder extends EncoderBase<ILoggingEvent> {
     }
 
     private static String messageOf(ILoggingEvent event) {
-        String template = event.getMessage();
-        return template != null ? template : event.getFormattedMessage();
+        String formatted = event.getFormattedMessage();
+        return formatted != null ? formatted : event.getMessage();
     }
 
-    private ArrayNode putArgs(ObjectNode record, Object[] arguments) {
+    private void putArgs(ObjectNode record, Object[] arguments) {
         if (arguments == null || arguments.length == 0) {
-            return null;
+            return;
         }
-        ArrayNode args = record.putArray("args");
+        boolean anyNamed = false;
         for (Object argument : arguments) {
-            if (argument == null) {
-                args.addNull();
-            } else if (argument instanceof String text) {
-                args.add(masker.mask(text));
-            } else {
-                args.add(asJson(argument));
+            if (argument instanceof Map<?, ?>) {
+                anyNamed = true;
+                break;
             }
         }
-        return args;
+        if (!anyNamed) {
+            ArrayNode args = record.putArray("args");
+            for (Object argument : arguments) {
+                addValue(args, argument);
+            }
+            return;
+        }
+        ObjectNode args = record.putObject("args");
+        int positional = 0;
+        for (Object argument : arguments) {
+            if (argument instanceof Map<?, ?> map) {
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    String name = String.valueOf(entry.getKey());
+                    args.set(name, jsonValue(entry.getValue()));
+                }
+            } else {
+                args.set("arg" + positional++, jsonValue(argument));
+            }
+        }
+    }
+
+    private void addValue(ArrayNode args, Object argument) {
+        if (argument == null) {
+            args.addNull();
+        } else if (argument instanceof String text) {
+            args.add(masker.mask(text));
+        } else {
+            args.add(asJson(argument));
+        }
+    }
+
+    private JsonNode jsonValue(Object value) {
+        if (value == null) {
+            return MAPPER.getNodeFactory().nullNode();
+        }
+        if (value instanceof String text) {
+            return MAPPER.getNodeFactory().textNode(masker.mask(text));
+        }
+        return asJson(value);
     }
 
     private JsonNode asJson(Object argument) {

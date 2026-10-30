@@ -30,26 +30,24 @@ kubectl apply -f k8s/10-postgres.yaml -f k8s/11-migrations-job.yaml \
 # миграция -> приложения
 kubectl -n link-tracker wait --for=condition=complete job/db-migrations --timeout=300s
 kubectl apply -f k8s/20-scrapper.yaml -f k8s/21-bot.yaml -f k8s/22-ai-agent.yaml -f k8s/30-frontend.yaml
-
-# логи: Victoria Logs + сборщик Vector (см. раздел "Логирование и Victoria Logs" ниже)
 kubectl apply -f k8s/40-victoria-logs.yaml -f k8s/41-vector-logs.yaml
 
-# образы Victoria Logs / Vector можно заранее загрузить в minikube
-# (если pull из docker hub внутри кластера не проходит из-за vpn/fake-dns):
 docker pull victoriametrics/victoria-logs:v1.53.0
 docker pull timberio/vector:0.60.0-debian
 minikube image load victoriametrics/victoria-logs:v1.53.0 timberio/vector:0.60.0-debian
 
-# можно проверить
-kubectl -n link-tracker get pods,svc
-curl http://$(minikube ip):30080/
-echo "https://$(minikube ip):30443/"
-
-# метрики 
+# метрики
 helm install vmsingle vm/victoria-metrics-single -f k8s/guide-vmsingle-values.yaml
 docker pull quay.io/prometheuscommunity/postgres-exporter:v0.20.1
 minikube image load victoriametrics/victoria-metrics:v1.136.0 \
                     quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+
+# - дашборды: собираются скриптом
+python3 scripts/render-dashboards.py
+kubectl apply -f k8s/60-grafana.yaml
+# - нагрузка на веб-версию:
+python3 scripts/loadgen.py --base-url http://$(minikube ip):30080 --users 5 --rps 20 --duration 10m
+python3 scripts/loadgen.py --base-url http://$(minikube ip):30080 --chaos --chaos-ratio 0.2 --duration 10m
 ```
 
 # можно проверить

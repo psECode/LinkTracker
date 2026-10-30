@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.api;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.logging.MdcTraceId;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxMessage;
 import backend.academy.linktracker.scrapper.domain.outboxMessages.OutboxRepository;
@@ -26,7 +27,7 @@ public class OutboxProcessor {
     private final ObjectMapper objectMapper;
 
     @Value("${app.kafka.topic-name}")
-    private String topicName;
+   private String topicName;
 
     @Scheduled(fixedDelay = 5000)
     @Transactional
@@ -35,14 +36,14 @@ public class OutboxProcessor {
 
         for (OutboxMessage msg : pending) {
             MdcTraceId.run("outbox-" + msg.getId(), () -> {
-                try {
+               try {
                     LinkUpdate dto = objectMapper.readValue(msg.getPayload(), LinkUpdate.class);
 
                     RawUpdateEvent event = RawUpdateEvent.newBuilder()
                             .setId(dto.id())
                             .setDescription(dto.description())
                             .setAuthor(dto.author() != null ? dto.author() : "unknown")
-                            .setTgChatIds(dto.tgChatIds())
+                           .setTgChatIds(dto.tgChatIds())
                             .setUserIds(
                                     dto.userIds() == null
                                             ? List.of()
@@ -54,10 +55,10 @@ public class OutboxProcessor {
                     kafkaTemplate.send(topicName, event).get();
 
                     outboxRepository.updateStatus(msg.getId(), OutboxStatus.SENT);
-                    log.info("Successfully processed outbox message: {}", msg.getId());
+                    log.info("Outbox message processed", LogArgs.of("message_id", msg.getId()));
 
-                } catch (Exception e) {
-                    log.error("Failed to process outbox message {}: {}", msg.getId(), e.getMessage(), e);
+               } catch (Exception e) {
+                    log.error("Failed to process outbox message", LogArgs.of("message_id", msg.getId(), "error", e.getMessage()), e);
                 }
             });
         }

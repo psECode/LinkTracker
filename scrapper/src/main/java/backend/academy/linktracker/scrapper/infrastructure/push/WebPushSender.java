@@ -1,5 +1,6 @@
 package backend.academy.linktracker.scrapper.infrastructure.push;
 
+import backend.academy.linktracker.logging.LogArgs;
 import backend.academy.linktracker.scrapper.domain.push.PushSubscription;
 import backend.academy.linktracker.scrapper.domain.push.PushSubscriptionRepository;
 import backend.academy.linktracker.scrapper.properties.WebPushProperties;
@@ -57,21 +58,21 @@ public class WebPushSender {
                     .retrieve()
                     .toBodilessEntity();
 
-            log.debug("Web Push delivered to {}: {}", subscription.endpoint(), response.getStatusCode());
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound
+            log.debug("Web Push delivered", LogArgs.of("endpoint", subscription.endpoint(), "status", response.getStatusCode()));
+       } catch (org.springframework.web.client.HttpClientErrorException.NotFound
                 | org.springframework.web.client.HttpClientErrorException.Gone e) {
-            log.info("Web Push subscription is invalid ({}), deleting: {}", e.getStatusCode(), subscription.endpoint());
-            pushSubscriptionRepository.deleteByEndpoint(subscription.endpoint());
+            log.info("Web Push subscription is invalid, deleting", LogArgs.of("status", e.getStatusCode(), "endpoint", subscription.endpoint()));
+           pushSubscriptionRepository.deleteByEndpoint(subscription.endpoint());
         } catch (Exception e) {
-            log.warn("Failed to deliver Web Push to {}: {}", subscription.endpoint(), e.getMessage(), e);
-        }
+            log.warn("Failed to deliver Web Push", LogArgs.of("endpoint", subscription.endpoint(), "error", e.getMessage()), e);
+       }
     }
 
     private void applyHeaders(HttpHeaders headers, String authorization) {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.set("TTL", String.valueOf(TTL_SECONDS));
-        headers.set("Urgency", "normal");
-        headers.set("Content-Encoding", "aes128gcm");
+       headers.set("Urgency", "normal");
+       headers.set("Content-Encoding", "aes128gcm");
         headers.set(HttpHeaders.AUTHORIZATION, authorization);
     }
 }
