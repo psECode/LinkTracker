@@ -18,9 +18,9 @@
     },
     {
       "id": 2, "type": "stat", "title": "Успешность add/remove ссылок",
-      "description": "Доля успешных пользовательских операций со ссылками за 5m",
+      "description": "Доля успешных пользовательских операций со ссылками за 5m.",
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
-      "targets": [{ "refId": "A", "expr": "100 * (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) / (sum(rate(links_tracked_total{application=\"scrapper\"}[5m])) or vector(1))" }],
+      "targets": [{ "refId": "A", "expr": "100 * (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) / ((sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"failure\",error_type=\"server\"}[5m])) or vector(0)))" }],
       "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1, "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [ {"color": "red", "value": null}, {"color": "orange", "value": 93}, {"color": "green", "value": 95} ] } }, "overrides": [] },
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "justifyMode": "auto" }
     },

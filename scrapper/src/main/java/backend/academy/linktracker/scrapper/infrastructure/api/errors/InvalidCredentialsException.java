@@ -2,7 +2,7 @@ package backend.academy.linktracker.scrapper.infrastructure.api.errors;
 
 import java.io.Serial;
 
-public class InvalidCredentialsException extends RuntimeException {
+public class InvalidCredentialsException extends RuntimeException implements ApiClientException {
     @Serial
     private static final long serialVersionUID = 602172615340506958L;
 

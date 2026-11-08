@@ -1,0 +1,125 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: link-tracker
+  labels:
+    app: alertmanager
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ["alertname", "severity"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: default
+      routes:
+        - matchers:
+            - severity = "page"
+          receiver: default
+          repeat_interval: 1h
+          continue: false
+        - matchers:
+            - severity = "warn"
+          receiver: default
+
+    receivers:
+      - name: default
+        discord_configs:
+          - webhook_url: "${DISCORD_WEBHOOK_URL}"
+            send_resolved: true
+            title: '{{ .Status | toUpper }}: {{ .Alerts.Firing | len }} firing{{ if gt (len .Alerts.Resolved) 0 }} / {{ .Alerts.Resolved | len }} resolved{{ end }}'
+            message: >-
+              {{- range .Alerts }}
+              **{{ .Labels.alertname }}** [{{ .Labels.severity }}] {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+    inhibit_rules:
+      - source_matchers:
+          - severity = "page"
+        target_matchers:
+          - severity = "warn"
+        equal: ["pod"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: link-tracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              URL="${DISCORD_WEBHOOK_URL:-https://discord.invalid/}"
+              sed "s|\${DISCORD_WEBHOOK_URL}|$URL|g" \
+                /etc/alertmanager/alertmanager.yml > /alertmanager/alertmanager.yml
+              exec /bin/alertmanager \
+                --config.file=/alertmanager/alertmanager.yml \
+                --storage.path=/alertmanager \
+                --web.listen-address=:9093
+          env:
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: link-tracker-secrets
+                  key: DISCORD_WEBHOOK_URL
+                  optional: true
+          ports:
+            - containerPort: 9093
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: link-tracker
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - port: 9093
+      targetPort: 9093
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-nodeport
+  namespace: link-tracker
+spec:
+  type: NodePort
+  selector:
+    app: alertmanager
+  ports:
+    - port: 9093
+      targetPort: 9093
+      nodePort: 30502

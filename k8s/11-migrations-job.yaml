@@ -14,6 +14,34 @@ spec:
         app: db-migrations
     spec:
       restartPolicy: Never
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_USER
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: POSTGRES_DB
+        command: ["sh", "-c"]
+        args:
+          - |
+            until pg_isready -h postgres-0.postgres -p 5432 -U "$POSTGRES_USER" -d "$POSTGRES_DB" 2>/dev/null; do
+              echo "waiting for postgres to become ready..."
+              sleep 2
+            done
+            echo "postgres is ready"
+        resources:
+          requests:
+            memory: 32Mi
+          limits:
+            memory: 64Mi
       containers:
       - name: liquibase
         image: link-tracker-migrations:latest

@@ -503,7 +503,7 @@
       "id": 3,
       "type": "stat",
       "title": "Обработка ссылок",
-      "description": "Доля успешных проверок ссылок во внешних источниках и пользовательских add/remove за 5m. Цель ≥95%. Падение ниже 95% — внешние API недоступны",
+      "description": "Доля успешных проверок ссылок во внешних источниках и пользовательских add/remove за 5m. Цель ≥95%. Ошибки пользователя (4xx) не считаются сбоем — в SLI входят только серверные ошибки (5xx)",
       "gridPos": {
         "h": 5,
         "w": 6,
@@ -513,7 +513,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * ((sum(rate(link_checks_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0))) / ((sum(rate(link_checks_total{application=\"scrapper\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\"}[5m])) or vector(0)))"
+          "expr": "100 * ((sum(rate(link_checks_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0))) / ((sum(rate(link_checks_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) + (sum(rate(link_checks_total{application=\"scrapper\",outcome=\"failure\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) or vector(0)) + (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"failure\",error_type=\"server\"}[5m])) or vector(0)))"
         }
       ],
       "fieldConfig": {
@@ -856,7 +856,7 @@
       "id": 7,
       "type": "stat",
       "title": "Бюджет ссылок",
-      "description": "Бюджет SLO обработки ссылок = 5% неуспешных операций за 30 дней. >100% — бюджет исчерпан",
+      "description": "Бюджет SLO обработки ссылок = 5% серверных ошибок (5xx) за 30 дней. Ошибки пользователя (4xx) не расходуют бюджет. >100% — бюджет исчерпан",
       "gridPos": {
         "h": 5,
         "w": 8,
@@ -866,7 +866,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * ((sum(increase(link_checks_total{application=\"scrapper\",outcome!=\"success\"}[30d])) or vector(0)) + (sum(increase(links_tracked_total{application=\"scrapper\",outcome!=\"success\"}[30d])) or vector(0))) / (0.05 * ((sum(increase(link_checks_total{application=\"scrapper\"}[30d])) or vector(0)) + (sum(increase(links_tracked_total{application=\"scrapper\"}[30d])) or vector(1))))"
+          "expr": "100 * ((sum(increase(link_checks_total{application=\"scrapper\",outcome=\"failure\"}[30d])) or vector(0)) + (sum(increase(links_tracked_total{application=\"scrapper\",outcome=\"failure\",error_type=\"server\"}[30d])) or vector(0))) / (0.05 * ((sum(increase(link_checks_total{application=\"scrapper\",outcome=\"success\"}[30d])) or vector(0)) + (sum(increase(link_checks_total{application=\"scrapper\",outcome=\"failure\"}[30d])) or vector(0)) + (sum(increase(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[30d])) or vector(0)) + (sum(increase(links_tracked_total{application=\"scrapper\",outcome=\"failure\",error_type=\"server\"}[30d])) or vector(1))))"
         }
       ],
       "fieldConfig": {

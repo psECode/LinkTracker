@@ -56,10 +56,10 @@ public class ScrapperController {
 
         try {
             SubscriptionResult res = subscribeUserUseCase.execute(userId, request.link(), request.tags());
-            meterRegistry.counter("links_tracked_total", "operation", "add", "outcome", "success").increment();
+            LinkProcessingMetrics.recordSuccess(meterRegistry, "add");
             return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
         } catch (RuntimeException e) {
-            meterRegistry.counter("links_tracked_total", "operation", "add", "outcome", "failure").increment();
+            LinkProcessingMetrics.recordFailure(meterRegistry, "add", e);
             throw e;
         }
     }
@@ -73,10 +73,10 @@ public class ScrapperController {
         try {
             SubscriptionResult res =
                     unsubscribeUserUseCase.execute(userId, request.link().toString());
-            meterRegistry.counter("links_tracked_total", "operation", "remove", "outcome", "success").increment();
+            LinkProcessingMetrics.recordSuccess(meterRegistry, "remove");
             return ResponseEntity.ok(responseMapper.map(res.subscription(), res.link(), res.user()));
         } catch (RuntimeException e) {
-            meterRegistry.counter("links_tracked_total", "operation", "remove", "outcome", "failure").increment();
+            LinkProcessingMetrics.recordFailure(meterRegistry, "remove", e);
             throw e;
         }
     }

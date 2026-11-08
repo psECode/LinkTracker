@@ -9,6 +9,22 @@ docker compose build
 minikube image load link-tracker-scrapper link-tracker-bot link-tracker-ai-agent \
                     link-tracker-migrations link-tracker-frontend
 
+EXTERNAL_IMAGES="postgres:17-alpine \
+                 valkey/valkey:8.0-alpine \
+                 apache/kafka:3.7.0 \
+                 confluentinc/cp-schema-registry:7.5.0 \
+                 danielqsj/kafka-exporter:v1.9.0 \
+                 nginx/nginx-prometheus-exporter:1.4.1 \
+                 victoriametrics/victoria-logs:v1.53.0 \
+                 victoriametrics/victoria-metrics:v1.136.0 \
+                 victoriametrics/vmalert:v1.136.0 \
+                 timberio/vector:0.60.0-debian \
+                 quay.io/prometheuscommunity/postgres-exporter:v0.20.1 \
+                 prom/alertmanager:v0.27.0 \
+                 grafana/grafana:latest"
+for img in $EXTERNAL_IMAGES; do docker pull "$img"; done
+minikube image load $EXTERNAL_IMAGES
+
 # конфиги
 kubectl apply -f k8s/00-namespace.yaml
 kubectl -n link-tracker create secret generic link-tracker-secrets --from-env-file=.env
@@ -28,27 +44,23 @@ kubectl apply -f k8s/10-postgres.yaml -f k8s/11-migrations-job.yaml \
               -f k8s/12-redis.yaml -f k8s/13-kafka.yaml -f k8s/14-schema-registry.yaml
 
 # миграция -> приложения
-kubectl -n link-tracker wait --for=condition=complete job/db-migrations --timeout=300s
+kubectl -n link-tracker wait --for=condition=complete job/db-migrations --timeout=600s
 kubectl apply -f k8s/20-scrapper.yaml -f k8s/21-bot.yaml -f k8s/22-ai-agent.yaml -f k8s/30-frontend.yaml
 kubectl apply -f k8s/40-victoria-logs.yaml -f k8s/41-vector-logs.yaml
 
-docker pull victoriametrics/victoria-logs:v1.53.0
-docker pull timberio/vector:0.60.0-debian
-minikube image load victoriametrics/victoria-logs:v1.53.0 timberio/vector:0.60.0-debian
-
 # метрики
 helm install vmsingle vm/victoria-metrics-single -f k8s/guide-vmsingle-values.yaml
-docker pull quay.io/prometheuscommunity/postgres-exporter:v0.20.1
-minikube image load victoriametrics/victoria-metrics:v1.136.0 \
-                    quay.io/prometheuscommunity/postgres-exporter:v0.20.1
 
 # - дашборды: собираются скриптом
 python3 scripts/render-dashboards.py
+kubectl apply -f k8s/50-vmalert.yaml -f k8s/51-alertmanager.yaml
 kubectl apply -f k8s/60-grafana.yaml
+```
+
 # - нагрузка на веб-версию:
 python3 scripts/loadgen.py --base-url http://$(minikube ip):30080 --users 5 --rps 20 --duration 10m
 python3 scripts/loadgen.py --base-url http://$(minikube ip):30080 --chaos --chaos-ratio 0.2 --duration 10m
-```
+
 
 # можно проверить
 kubectl -n link-tracker get pods,svc

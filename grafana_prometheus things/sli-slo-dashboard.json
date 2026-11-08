@@ -658,7 +658,7 @@
                     "version": "v0"
                   },
                   "refId": "A",
-                  "expr": "sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) by (operation) / sum(rate(links_tracked_total{application=\"scrapper\"}[5m])) by (operation)",
+                  "expr": "sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) by (operation) / (sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"success\"}[5m])) by (operation) + sum(rate(links_tracked_total{application=\"scrapper\",outcome=\"failure\",error_type=\"server\"}[5m])) by (operation))",
                   "legendFormat": "{{operation}}"
                 }
               }
@@ -667,7 +667,7 @@
             "transformations": []
           }
         },
-        "description": "SLO ≥ 95% для каждой операции (add / remove). 4xx пользователя учитываются здесь как сбой обработки.",
+        "description": "SLO ≥ 95% для каждой операции (add / remove).",
         "id": 2,
         "links": [],
         "title": "SLI 3 · Доля успешных add/remove ссылок (5m)",

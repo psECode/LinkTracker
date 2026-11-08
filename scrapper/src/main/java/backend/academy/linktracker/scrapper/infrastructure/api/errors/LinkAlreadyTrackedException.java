@@ -2,7 +2,7 @@ package backend.academy.linktracker.scrapper.infrastructure.api.errors;
 
 import java.io.Serial;
 
-public class LinkAlreadyTrackedException extends RuntimeException {
+public class LinkAlreadyTrackedException extends RuntimeException implements ApiClientException {
 
     @Serial
     private static final long serialVersionUID = -7312284529766810738L;

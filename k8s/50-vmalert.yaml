@@ -7,9 +7,9 @@ metadata:
   labels:
     app: vmalert
 data:
-  slo-rules.yaml: |
+  rules.yaml: |
     groups:
-      - name: slo-availability
+      - name: availability
         interval: 30s
         rules:
           - alert: ScrapperHigh5xxRatio
@@ -21,8 +21,8 @@ data:
               severity: page
               slo: availability
             annotations:
-              summary: "Доля 5xx у scrapper > 5% (SLO-бюджет)"
-              description: "SLI доступности ниже цели 95% на окне 15m."
+              summary: "Доля 5xx у scrapper > 5%"
+
           - alert: ScrapperErrorBudgetFastBurn
             expr: |
               ((sum(rate(http_server_requests_seconds_count{application="scrapper",status=~"5.."}[1h])) or vector(0))
@@ -32,10 +32,61 @@ data:
               severity: page
               slo: availability
             annotations:
-              summary: "Burn rate доступности 14x — бюджет будет исчерпан за ~2 дня"
-              description: "Ошибка за 1h > 7% при бюджете 5% на 30d."
+              summary: "Burn rate доступности падает очень быстро"
 
-      - name: slo-latency
+      - name: link-processing
+        interval: 30s
+        rules:
+          - alert: LinksProcessingServerErrorsHigh
+            expr: |
+              sum(rate(links_tracked_total{application="scrapper",outcome="failure",error_type="server"}[5m])) by (operation)
+                / (sum(rate(links_tracked_total{application="scrapper",outcome="success"}[5m])) by (operation)
+                   + sum(rate(links_tracked_total{application="scrapper",outcome="failure",error_type="server"}[15m])) by (operation)) > 0.05
+            for: 5m
+            labels:
+              severity: warn
+              slo: link-processing
+            annotations:
+              summary: "Серверных ошибок при обработке ссылок ({{ $labels.operation }}) > 5%"
+
+          - alert: ExternalLinkChecksFailing
+            expr: |
+              sum(rate(link_checks_total{application="scrapper",outcome="failure"}[5m])) by (source)
+                / sum(rate(link_checks_total{application="scrapper"}[5m])) by (source) > 0.05
+            for: 5m
+            labels:
+              severity: warn
+              slo: link-processing
+            annotations:
+              summary: "Проверок ссылок в источнике {{ $labels.source }} падает > 5%"
+
+      - name: bot
+        interval: 30s
+        rules:
+          - alert: BotCommandFailuresHigh
+            expr: |
+              sum(rate(command_requests_total{application="bot",outcome="failure"}[15m])) by (command)
+                / sum(rate(command_requests_total{application="bot"}[15m])) by (command) > 0.05
+            for: 10m
+            labels:
+              severity: warn
+              slo: correctness
+            annotations:
+              summary: "Неуспешных команд бота ({{ $labels.command }}) > 5%"
+
+          - alert: BotCommandLatencyP95High
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(command_duration_ms_total_seconds_bucket{application="bot"}[15m])) by (le)
+              ) > 3
+            for: 10m
+            labels:
+              severity: warn
+              slo: latency
+            annotations:
+              summary: "p95 выполнения команд бота > 3s"
+
+      - name: latency
         interval: 30s
         rules:
           - alert: ScrapperLatencyP95High
@@ -49,43 +100,45 @@ data:
               slo: latency
             annotations:
               summary: "p95 latency основных ручек scrapper > 1s"
-          - alert: BotCommandLatencyP95High
-            expr: |
-              histogram_quantile(0.95,
-                sum(rate(command_duration_ms_total_seconds_bucket{application="bot"}[15m])) by (le)
-              ) > 3
-            for: 10m
-            labels:
-              severity: warn
-              slo: latency
-            annotations:
-              summary: "p95 выполнения команд бота > 3s"
 
-      - name: slo-correctness
+      - name: runtime-jvm
         interval: 30s
         rules:
-          - alert: LinksProcessingFailuresHigh
+          - alert: JVMHeapHigh
             expr: |
-              sum(rate(links_tracked_total{application="scrapper",outcome="success"}[15m])) by (operation)
-                / sum(rate(links_tracked_total{application="scrapper"}[15m])) by (operation) < 0.95
+              jvm_memory_used_bytes{application=~"scrapper|bot", area="heap"}
+                / jvm_memory_max_bytes{application=~"scrapper|bot", area="heap"} > 0.9
+              and jvm_memory_max_bytes{application=~"scrapper|bot", area="heap"} > 0
             for: 10m
             labels:
               severity: warn
-              slo: correctness
+              slo: resources
             annotations:
-              summary: "Успешных обработок ссылок ({{ $labels.operation }}) < 95%"
-          - alert: BotCommandFailuresHigh
-            expr: |
-              sum(rate(command_requests_total{application="bot",outcome="success"}[15m])) by (command)
-                / sum(rate(command_requests_total{application="bot"}[15m])) by (command) < 0.95
-            for: 10m
-            labels:
-              severity: warn
-              slo: correctness
-            annotations:
-              summary: "Успешных команд бота ({{ $labels.command }}) < 95%"
+              summary: "JVM heap {{ $labels.application }} > 90%"
 
-      - name: slo-liveness-resources
+          - alert: TomcatThreadsSaturated
+            expr: |
+              tomcat_threads_busy{application=~"scrapper|bot"}
+                / tomcat_threads_config_max{application=~"scrapper|bot"} > 0.8
+            for: 5m
+            labels:
+              severity: warn
+              slo: resources
+            annotations:
+              summary: "Потоки Tomcat {{ $labels.application }} заняты > 80%"
+
+          - alert: ProcessCpuHigh
+            expr: |
+              process_cpu_usage{application=~"scrapper|bot"} > 0.85
+            for: 10m
+            labels:
+              severity: warn
+              slo: resources
+            annotations:
+              summary: "CPU процесса {{ $labels.application }} > 85%"
+              description: "Стабильно высокая загрузка CPU процесса (метрика micrometer)."
+
+      - name: liveness
         interval: 30s
         rules:
           - alert: ServiceDown
@@ -95,17 +148,7 @@ data:
               severity: page
               slo: liveness
             annotations:
-              summary: "Сервис {{ $labels.pod }} не отвечает скрейпу"
-          - alert: JVMHeapHigh
-            expr: |
-              jvm_memory_used_bytes{application=~"scrapper|bot", area="heap"}
-                / jvm_memory_max_bytes{application=~"scrapper|bot", area="heap"} > 0.9
-            for: 10m
-            labels:
-              severity: warn
-              slo: resources
-            annotations:
-              summary: "JVM heap {{ $labels.application }} > 90% максимума"
+              summary: "Сервис {{ $labels.pod }} не отвечает"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -127,8 +170,8 @@ spec:
           image: victoriametrics/vmalert:v1.136.0
           args:
             - -datasource.url=http://vmsingle-victoria-metrics-single-server.default.svc.cluster.local:8428
-            - -notifier.url=http://vmsingle-victoria-metrics-single-server.default.svc.cluster.local:8428
-            - -rule=/etc/vmalert/slo-rules.yaml
+            - -notifier.url=http://alertmanager.link-tracker.svc.cluster.local:9093
+            - -rule=/etc/vmalert/rules.yaml
             - -evaluationInterval=30s
             - -httpListenAddr=:8888
           ports:

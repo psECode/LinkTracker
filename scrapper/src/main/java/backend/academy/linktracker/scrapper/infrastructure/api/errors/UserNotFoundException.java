@@ -3,7 +3,7 @@ package backend.academy.linktracker.scrapper.infrastructure.api.errors;
 import java.io.Serial;
 import java.util.UUID;
 
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends RuntimeException implements ApiClientException {
     @Serial
     private static final long serialVersionUID = 602172615340506956L;
 

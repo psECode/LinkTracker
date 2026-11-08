@@ -2,7 +2,7 @@ package backend.academy.linktracker.scrapper.infrastructure.api.errors;
 
 import java.io.Serial;
 
-public class SubscriptionNotFoundException extends RuntimeException {
+public class SubscriptionNotFoundException extends RuntimeException implements ApiClientException {
     @Serial
     private static final long serialVersionUID = 7403208119229037277L;
 
