@@ -69,20 +69,19 @@ data:
         inputs:
           - link_tracker_apps
         source: |
-          # JSON-логи приложения раскрываем в отдельные поля;
-          # не-JSON строки (nginx access log, баннеры JVM и т.п.) остаются как есть в .message
           parsed, err = parse_json(.message)
           if err == null {
-            # infallible-форма merge: vector 0.60 требует, чтобы ошибка merge была
-            # присвоена переменной, иначе VRL не компилируется (внутри if err==null
-            # merge фактически не падает, но статический тип . неизвестен)
             ., merge_err = merge(., parsed)
           }
-          # метаданные пода из имени файла с логами (flatten, без вложенного объекта)
           .namespace = .kubernetes.pod_namespace
           .pod_name = .kubernetes.pod_name
           .container_name = .kubernetes.container_name
           del(.kubernetes)
+
+          if err != null {
+            ."@timestamp" = .timestamp
+          }
+          del(.timestamp)
 
     sinks:
       victoria_logs:
