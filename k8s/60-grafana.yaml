@@ -71,12 +71,12 @@ data:
         "to": "now"
       },
       "schemaVersion": 39,
-      "version": 1,
+      "version": 2,
       "panels": [
         {
           "id": 1,
           "type": "stat",
-          "title": "Состояние бота",
+          "title": "Bot status",
           "description": "up таргета скрейпа метрик бота (:8011/metrics)",
           "gridPos": {
             "h": 4,
@@ -95,7 +95,18 @@ data:
               "decimals": 0,
               "min": 0,
               "max": 1,
+              "noValue": "unknown",
               "mappings": [
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "empty",
+                    "result": {
+                      "text": "unknown",
+                      "color": "gray"
+                    }
+                  }
+                },
                 {
                   "type": "value",
                   "options": {
@@ -140,7 +151,7 @@ data:
         {
           "id": 2,
           "type": "stat",
-          "title": "Команды, rps",
+          "title": "Commands rps",
           "description": "command_requests_total по типам команд (значение появится после использования бота)",
           "gridPos": {
             "h": 4,
@@ -158,7 +169,7 @@ data:
             "defaults": {
               "unit": "reqps",
               "decimals": 2,
-              "noValue": "нет данных"
+              "noValue": "no data"
             },
             "overrides": []
           },
@@ -176,7 +187,7 @@ data:
         {
           "id": 3,
           "type": "stat",
-          "title": "Latency команд p95",
+          "title": "Command latency p95",
           "description": "p95 command_duration_ms_total по типам команд",
           "gridPos": {
             "h": 4,
@@ -194,7 +205,7 @@ data:
             "defaults": {
               "unit": "s",
               "decimals": 2,
-              "noValue": "нет данных",
+              "noValue": "no data",
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
@@ -225,7 +236,7 @@ data:
         {
           "id": 4,
           "type": "stat",
-          "title": "Отправлено уведомлений (30d)",
+          "title": "Notifications sent (30d)",
           "description": "sent_notification_total — дельта за 30 дней",
           "gridPos": {
             "h": 4,
@@ -243,7 +254,7 @@ data:
             "defaults": {
               "unit": "short",
               "decimals": 0,
-              "noValue": "нет данных"
+              "noValue": "no data"
             },
             "overrides": []
           },
@@ -261,7 +272,7 @@ data:
         {
           "id": 5,
           "type": "timeseries",
-          "title": "Команды по типам",
+          "title": "Commands by type",
           "description": "rate command_requests_total по команде",
           "gridPos": {
             "h": 8,
@@ -279,7 +290,7 @@ data:
           "fieldConfig": {
             "defaults": {
               "unit": "reqps",
-              "noValue": "нет данных"
+              "noValue": "no data"
             },
             "overrides": []
           },
@@ -299,7 +310,7 @@ data:
         {
           "id": 6,
           "type": "timeseries",
-          "title": "p95 latency по командам",
+          "title": "p95 latency by command",
           "description": "histogram_quantile по command_duration_ms_total_seconds_bucket",
           "gridPos": {
             "h": 8,
@@ -317,7 +328,7 @@ data:
           "fieldConfig": {
             "defaults": {
               "unit": "s",
-              "noValue": "нет данных"
+              "noValue": "no data"
             },
             "overrides": []
           },
@@ -335,14 +346,75 @@ data:
           }
         },
         {
-          "id": 7,
-          "type": "timeseries",
-          "title": "JVM heap к максимуму",
-          "description": "heap/max по процессам бота",
+          "id": 9,
+          "type": "heatmap",
+          "title": "Command latency heatmap",
+          "description": "Распределение латентности команд по времени и бакетам (increase за 5m)",
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(increase(command_duration_ms_total_seconds_bucket{application=\"bot\",le!=\"+Inf\"}[5m])) by (le)",
+              "format": "heatmap"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "custom": {
+                "scaleDistribution": {
+                  "type": "log"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "calculate": false,
+            "cellGap": 1,
+            "color": {
+              "exponent": 0.5,
+              "fill": "dark",
+              "mode": "scheme",
+              "reverse": false,
+              "scheme": "Oranges",
+              "steps": 64
+            },
+            "exemplars": {
+              "color": "rgba(255,255,255,0.4)"
+            },
+            "filterValues": {
+              "le": 1e-09
+            },
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "showValue": "never",
+            "yAxis": {
+              "axisLabel": "latency",
+              "axisPlacement": "left",
+              "reverse": false,
+              "unit": "s"
+            }
+          }
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "JVM heap vs max",
+          "description": "heap/max по процессам бота",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
             "y": 12
           },
           "targets": [
@@ -394,13 +466,13 @@ data:
         {
           "id": 8,
           "type": "logs",
-          "title": "Логи бота",
+          "title": "Bot logs",
           "description": "Victoria Logs: структурные логи бота (args.<имя> — параметры)",
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 12
+            "w": 24,
+            "x": 0,
+            "y": 20
           },
           "datasource": {
             "type": "victoriametrics-logs-datasource",
@@ -426,7 +498,7 @@ metadata:
 data:
   overview.json: |
     {
-      "title": "Обзор — Link Tracker",
+      "title": "Link Tracker · Overview",
       "uid": "link-tracker-overview",
       "tags": [
         "slo",
@@ -439,7 +511,7 @@ data:
         "to": "now"
       },
       "schemaVersion": 39,
-      "version": 3,
+      "version": 4,
       "panels": [
         {
           "id": 20,
@@ -586,7 +658,7 @@ data:
           "targets": [
             {
               "refId": "A",
-              "expr": "clamp_max(max(kafka_brokers), 1)"
+              "expr": "clamp_max(max(kafka_brokers) or max(up{pod=~\"kafka-exporter.*\"}), 1)"
             }
           ],
           "fieldConfig": {
@@ -594,7 +666,18 @@ data:
               "decimals": 0,
               "min": 0,
               "max": 1,
+              "noValue": "unknown",
               "mappings": [
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "empty",
+                    "result": {
+                      "text": "unknown",
+                      "color": "gray"
+                    }
+                  }
+                },
                 {
                   "type": "value",
                   "options": {
@@ -840,13 +923,13 @@ data:
         {
           "id": 2,
           "type": "stat",
-          "title": "Доступность API",
+          "title": "API availability",
           "description": "Доля ответов без серверных ошибок (5xx) за 30 дней. Цель ≥95%. Бюджет ошибок: 5% отказов",
           "gridPos": {
             "h": 5,
             "w": 6,
             "x": 0,
-            "y": 5
+            "y": 3
           },
           "targets": [
             {
@@ -867,7 +950,7 @@ data:
                     "from": 0,
                     "to": 93,
                     "result": {
-                      "text": "не выполняется",
+                      "text": "not met",
                       "color": "red"
                     }
                   }
@@ -878,7 +961,7 @@ data:
                     "from": 93,
                     "to": 95,
                     "result": {
-                      "text": "на грани",
+                      "text": "at risk",
                       "color": "orange"
                     }
                   }
@@ -889,7 +972,7 @@ data:
                     "from": 95,
                     "to": 100,
                     "result": {
-                      "text": "выполняется",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -929,13 +1012,13 @@ data:
         {
           "id": 3,
           "type": "stat",
-          "title": "Обработка ссылок",
+          "title": "Link processing",
           "description": "Доля успешных проверок ссылок во внешних источниках и пользовательских add/remove за 5m. Цель ≥95%. Ошибки пользователя (4xx) не считаются сбоем — в SLI входят только серверные ошибки (5xx)",
           "gridPos": {
             "h": 5,
             "w": 6,
             "x": 6,
-            "y": 5
+            "y": 3
           },
           "targets": [
             {
@@ -956,7 +1039,7 @@ data:
                     "from": 0,
                     "to": 93,
                     "result": {
-                      "text": "не выполняется",
+                      "text": "not met",
                       "color": "red"
                     }
                   }
@@ -967,7 +1050,7 @@ data:
                     "from": 93,
                     "to": 95,
                     "result": {
-                      "text": "на грани",
+                      "text": "at risk",
                       "color": "orange"
                     }
                   }
@@ -978,7 +1061,7 @@ data:
                     "from": 95,
                     "to": 100,
                     "result": {
-                      "text": "выполняется",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1018,13 +1101,13 @@ data:
         {
           "id": 4,
           "type": "stat",
-          "title": "Latency p95 API",
+          "title": "API latency p95",
           "description": "95-й процентиль времени ответа основных ручек API (scrapper) за 5m. Цель <1s",
           "gridPos": {
             "h": 5,
             "w": 6,
             "x": 12,
-            "y": 5
+            "y": 3
           },
           "targets": [
             {
@@ -1043,7 +1126,7 @@ data:
                     "from": 0,
                     "to": 0.7,
                     "result": {
-                      "text": "выполняется",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1054,7 +1137,7 @@ data:
                     "from": 0.7,
                     "to": 1,
                     "result": {
-                      "text": "на грани",
+                      "text": "at risk",
                       "color": "orange"
                     }
                   }
@@ -1065,7 +1148,7 @@ data:
                     "from": 1,
                     "to": 999,
                     "result": {
-                      "text": "не выполняется",
+                      "text": "not met",
                       "color": "red"
                     }
                   }
@@ -1111,7 +1194,7 @@ data:
             "h": 5,
             "w": 6,
             "x": 18,
-            "y": 5
+            "y": 3
           },
           "targets": [
             {
@@ -1132,7 +1215,7 @@ data:
                     "from": 0,
                     "to": 97,
                     "result": {
-                      "text": "не выполняется",
+                      "text": "not met",
                       "color": "red"
                     }
                   }
@@ -1143,7 +1226,7 @@ data:
                     "from": 97,
                     "to": 98,
                     "result": {
-                      "text": "на грани",
+                      "text": "at risk",
                       "color": "orange"
                     }
                   }
@@ -1154,7 +1237,7 @@ data:
                     "from": 98,
                     "to": 100,
                     "result": {
-                      "text": "выполняется",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1194,13 +1277,13 @@ data:
         {
           "id": 6,
           "type": "stat",
-          "title": "Бюджет доступности",
+          "title": "Availability budget",
           "description": "Бюджет SLO доступности = 5% отказов за 30 дней. >100% — SLO нарушено, сервисный кредит",
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 0,
-            "y": 10
+            "y": 8
           },
           "targets": [
             {
@@ -1220,7 +1303,7 @@ data:
                     "from": 0,
                     "to": 60,
                     "result": {
-                      "text": "ок",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1231,7 +1314,7 @@ data:
                     "from": 60,
                     "to": 100,
                     "result": {
-                      "text": "тревожно",
+                      "text": "warning",
                       "color": "orange"
                     }
                   }
@@ -1242,7 +1325,7 @@ data:
                     "from": 100,
                     "to": 9999,
                     "result": {
-                      "text": "исчерпан",
+                      "text": "exhausted",
                       "color": "red"
                     }
                   }
@@ -1282,13 +1365,13 @@ data:
         {
           "id": 7,
           "type": "stat",
-          "title": "Бюджет ссылок",
+          "title": "Link budget",
           "description": "Бюджет SLO обработки ссылок = 5% серверных ошибок (5xx) за 30 дней. Ошибки пользователя (4xx) не расходуют бюджет. >100% — бюджет исчерпан",
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 8,
-            "y": 10
+            "y": 8
           },
           "targets": [
             {
@@ -1308,7 +1391,7 @@ data:
                     "from": 0,
                     "to": 60,
                     "result": {
-                      "text": "ок",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1319,7 +1402,7 @@ data:
                     "from": 60,
                     "to": 100,
                     "result": {
-                      "text": "тревожно",
+                      "text": "warning",
                       "color": "orange"
                     }
                   }
@@ -1330,7 +1413,7 @@ data:
                     "from": 100,
                     "to": 9999,
                     "result": {
-                      "text": "исчерпан",
+                      "text": "exhausted",
                       "color": "red"
                     }
                   }
@@ -1370,13 +1453,13 @@ data:
         {
           "id": 8,
           "type": "stat",
-          "title": "Бюджет latency",
+          "title": "Latency budget",
           "description": "Бюджет SLO latency = 5% запросов медленнее 1s за 30 дней. >100% — бюджет исчерпан",
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 16,
-            "y": 10
+            "y": 8
           },
           "targets": [
             {
@@ -1396,7 +1479,7 @@ data:
                     "from": 0,
                     "to": 60,
                     "result": {
-                      "text": "ок",
+                      "text": "ok",
                       "color": "green"
                     }
                   }
@@ -1407,7 +1490,7 @@ data:
                     "from": 60,
                     "to": 100,
                     "result": {
-                      "text": "тревожно",
+                      "text": "warning",
                       "color": "orange"
                     }
                   }
@@ -1418,7 +1501,7 @@ data:
                     "from": 100,
                     "to": 9999,
                     "result": {
-                      "text": "исчерпан",
+                      "text": "exhausted",
                       "color": "red"
                     }
                   }
@@ -1458,13 +1541,13 @@ data:
         {
           "id": 9,
           "type": "timeseries",
-          "title": "Обработка ссылок по источникам",
+          "title": "Link processing by source",
           "description": "Успешность проверок во внешних источниках (github/stackoverflow), 5m",
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 15
+            "y": 13
           },
           "targets": [
             {
@@ -1521,13 +1604,13 @@ data:
         {
           "id": 10,
           "type": "timeseries",
-          "title": "Нагрузка",
+          "title": "Load",
           "description": "RPS API scrapper + темп проверок ссылок планировщиком",
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 15
+            "y": 13
           },
           "targets": [
             {
@@ -1538,12 +1621,649 @@ data:
             {
               "refId": "B",
               "expr": "sum(rate(link_checks_total{application=\"scrapper\"}[5m]))",
-              "legendFormat": "проверок ссылок/с"
+              "legendFormat": "link checks/s"
             }
           ],
           "fieldConfig": {
             "defaults": {
               "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-postgres
+  namespace: link-tracker
+  labels:
+    app: grafana
+data:
+  postgres.json: |
+    {
+      "title": "Link Tracker · Postgres",
+      "uid": "link-tracker-postgres",
+      "tags": [
+        "postgres",
+        "db"
+      ],
+      "timezone": "browser",
+      "refresh": "30s",
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "schemaVersion": 39,
+      "version": 1,
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Postgres",
+          "description": "pg_up — соединение postgres-exporter с инстансом",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 0,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "clamp_max(max(pg_up), 1)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 0,
+              "min": 0,
+              "max": 1,
+              "noValue": "unknown",
+              "mappings": [
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "empty",
+                    "result": {
+                      "text": "unknown",
+                      "color": "gray"
+                    }
+                  }
+                },
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "up",
+                      "color": "green"
+                    },
+                    "0": {
+                      "text": "down",
+                      "color": "red"
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.5
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value",
+            "justifyMode": "center"
+          }
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Active connections",
+          "description": "Суммарное число активных бэкендов по всем базам (pg_stat_database_numbackends)",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 4,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(pg_stat_database_numbackends)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 95
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Cache hit ratio",
+          "description": "Доля попаданий в буферный кэш с момента сброса статистики (blks_hit / (blks_hit + blks_read))",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 8,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "100 * sum(pg_stat_database_blks_hit) / (sum(pg_stat_database_blks_hit) + sum(pg_stat_database_blks_read))"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "decimals": 1,
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 90
+                  },
+                  {
+                    "color": "green",
+                    "value": 97
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Transactions/s",
+          "description": "Темп коммитов и роллбэков за 5m",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 12,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(pg_stat_database_xact_commit[5m])) + sum(rate(pg_stat_database_xact_rollback[5m]))"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops",
+              "decimals": 2,
+              "noValue": "no data"
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "Deadlocks 5m",
+          "description": "Прирост взаимоблокировок за 5m",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 16,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(increase(pg_stat_database_deadlocks[5m]))"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "decimals": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "Exporter scrape",
+          "description": "Длительность последнего скрейпа postgres-exporter",
+          "gridPos": {
+            "h": 4,
+            "w": 4,
+            "x": 20,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(pg_exporter_last_scrape_duration_seconds)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "decimals": 3,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Transactions by database",
+          "description": "rate коммитов и роллбэков по каждой базе",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(pg_stat_database_xact_commit{datname!=\"\"}[5m])) by (datname)",
+              "legendFormat": "{{datname}} commit"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(rate(pg_stat_database_xact_rollback{datname!=\"\"}[5m])) by (datname)",
+              "legendFormat": "{{datname}} rollback"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Connections by state",
+          "description": "pg_stat_activity_count по состояниям сессий",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(pg_stat_activity_count) by (state)",
+              "legendFormat": "{{state}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "stacking": {
+                  "mode": "normal"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Cache hit ratio over time",
+          "description": "Доля попаданий в кэш по базам за 5m",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "100 * (sum(rate(pg_stat_database_blks_hit{datname!=\"\"}[5m])) by (datname) / (sum(rate(pg_stat_database_blks_hit{datname!=\"\"}[5m])) by (datname) + sum(rate(pg_stat_database_blks_read{datname!=\"\"}[5m])) by (datname)))",
+              "legendFormat": "{{datname}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "dashed+lines"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 90
+                  },
+                  {
+                    "color": "green",
+                    "value": 97
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "min"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "type": "timeseries",
+          "title": "Max transaction duration",
+          "description": "pg_stat_activity_max_tx_duration по состояниям",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(pg_stat_activity_max_tx_duration) by (state)",
+              "legendFormat": "{{state}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "dashed+lines"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 300
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 11,
+          "type": "timeseries",
+          "title": "Deadlocks & temp files",
+          "description": "Темп взаимоблокировок и использование временных файлов по базам",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 20
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(pg_stat_database_deadlocks{datname!=\"\"}[5m])) by (datname)",
+              "legendFormat": "{{datname}} deadlocks/s"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(rate(pg_stat_database_temp_files{datname!=\"\"}[5m])) by (datname)",
+              "legendFormat": "{{datname}} temp files/s"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 12,
+          "type": "timeseries",
+          "title": "Background writer buffers",
+          "description": "Скорость выделения и записи буферов (pg_stat_bgwriter)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 20
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(pg_stat_bgwriter_buffers_alloc[5m]))",
+              "legendFormat": "alloc/s"
+            },
+            {
+              "refId": "B",
+              "expr": "sum(rate(pg_stat_bgwriter_buffers_checkpoint[5m]))",
+              "legendFormat": "checkpoint/s"
+            },
+            {
+              "refId": "C",
+              "expr": "sum(rate(pg_stat_bgwriter_buffers_backend[5m]))",
+              "legendFormat": "backend/s"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "ops"
             },
             "overrides": []
           },
@@ -1587,12 +2307,12 @@ data:
         "to": "now"
       },
       "schemaVersion": 39,
-      "version": 2,
+      "version": 3,
       "panels": [
         {
           "id": 1,
           "type": "stat",
-          "title": "Успешность обработки ссылок",
+          "title": "Link processing success",
           "description": "Доля успешных проверок ссылок во внешних источниках за 5m. Падение ниже 95% — внешние API недоступны",
           "gridPos": {
             "h": 5,
@@ -1646,7 +2366,7 @@ data:
         {
           "id": 2,
           "type": "stat",
-          "title": "Успешность add/remove ссылок",
+          "title": "Add/remove success",
           "description": "Доля успешных пользовательских операций со ссылками за 5m.",
           "gridPos": {
             "h": 5,
@@ -1700,7 +2420,7 @@ data:
         {
           "id": 3,
           "type": "stat",
-          "title": "Latency p95 API",
+          "title": "API latency p95",
           "description": "p95 времени ответа основных ручек за 5m",
           "gridPos": {
             "h": 5,
@@ -1752,7 +2472,7 @@ data:
         {
           "id": 4,
           "type": "stat",
-          "title": "Доступность API",
+          "title": "API availability",
           "description": "Доля ответов без 5xx за 5m",
           "gridPos": {
             "h": 5,
@@ -1806,7 +2526,7 @@ data:
         {
           "id": 5,
           "type": "timeseries",
-          "title": "Проверки ссылок: успех/неуспех",
+          "title": "Link checks: success / failure",
           "description": "Темп проверок ссылок во внешних источниках по результату и источнику",
           "gridPos": {
             "h": 8,
@@ -1818,7 +2538,7 @@ data:
             {
               "refId": "A",
               "expr": "sum(rate(link_checks_total{application=\"scrapper\"}[5m])) by (source, outcome)",
-              "legendFormat": "{{source}} {{outcome}}"
+              "legendFormat": "{{source}} · {{outcome}}"
             }
           ],
           "fieldConfig": {
@@ -1844,7 +2564,7 @@ data:
         {
           "id": 6,
           "type": "timeseries",
-          "title": "Время проверки внешних источников p95",
+          "title": "External source checks p95",
           "description": "p95 request_duration_ms по источнику (github/stackoverflow)",
           "gridPos": {
             "h": 8,
@@ -1881,7 +2601,7 @@ data:
         {
           "id": 7,
           "type": "timeseries",
-          "title": "p95 latency по ручкам",
+          "title": "p95 latency by endpoint",
           "description": "p95 http_server_requests по каждой ручке",
           "gridPos": {
             "h": 8,
@@ -1919,7 +2639,7 @@ data:
         {
           "id": 8,
           "type": "timeseries",
-          "title": "RPS по ручкам",
+          "title": "RPS by endpoint",
           "description": "Частота запросов по uri",
           "gridPos": {
             "h": 8,
@@ -1954,14 +2674,75 @@ data:
           }
         },
         {
-          "id": 9,
-          "type": "timeseries",
-          "title": "Статусы ответов",
-          "description": "Распределение ответов по классам (2xx/4xx/5xx)",
+          "id": 14,
+          "type": "heatmap",
+          "title": "API latency heatmap",
+          "description": "Распределение латентности API по времени и бакетам гистограммы (increase за 5m)",
           "gridPos": {
             "h": 8,
             "w": 12,
             "x": 0,
+            "y": 21
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(increase(http_server_requests_seconds_bucket{application=\"scrapper\",le!=\"+Inf\"}[5m])) by (le)",
+              "format": "heatmap"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "custom": {
+                "scaleDistribution": {
+                  "type": "log"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "calculate": false,
+            "cellGap": 1,
+            "color": {
+              "exponent": 0.5,
+              "fill": "dark",
+              "mode": "scheme",
+              "reverse": false,
+              "scheme": "Oranges",
+              "steps": 64
+            },
+            "exemplars": {
+              "color": "rgba(255,255,255,0.4)"
+            },
+            "filterValues": {
+              "le": 1e-09
+            },
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "showValue": "never",
+            "yAxis": {
+              "axisLabel": "latency",
+              "axisPlacement": "left",
+              "reverse": false,
+              "unit": "s"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "Response statuses",
+          "description": "Распределение ответов по классам (2xx/4xx/5xx)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
             "y": 21
           },
           "targets": [
@@ -1998,19 +2779,19 @@ data:
         {
           "id": 10,
           "type": "timeseries",
-          "title": "Авторизация: успех/неуспех",
+          "title": "Auth: success / failure",
           "description": "auth_events_total по операции и результату",
           "gridPos": {
             "h": 8,
             "w": 12,
-            "x": 12,
-            "y": 21
+            "x": 0,
+            "y": 29
           },
           "targets": [
             {
               "refId": "A",
               "expr": "sum(rate(auth_events_total{application=\"scrapper\"}[5m])) by (operation, outcome)",
-              "legendFormat": "{{operation}} {{outcome}}"
+              "legendFormat": "{{operation}} · {{outcome}}"
             }
           ],
           "fieldConfig": {
@@ -2035,12 +2816,12 @@ data:
         {
           "id": 11,
           "type": "stat",
-          "title": "Ссылок на трекинге",
+          "title": "Tracked links",
           "description": "links_on_track по типам источников",
           "gridPos": {
             "h": 4,
             "w": 6,
-            "x": 0,
+            "x": 12,
             "y": 29
           },
           "targets": [
@@ -2070,12 +2851,12 @@ data:
         {
           "id": 12,
           "type": "stat",
-          "title": "JVM heap к максимуму",
+          "title": "JVM heap vs max",
           "description": "Память процесса scrapper",
           "gridPos": {
             "h": 4,
             "w": 6,
-            "x": 6,
+            "x": 18,
             "y": 29
           },
           "targets": [
@@ -2118,13 +2899,13 @@ data:
         {
           "id": 13,
           "type": "logs",
-          "title": "Логи scrapper",
+          "title": "Scrapper logs",
           "description": "Victoria Logs: WARN/ERROR — сообщение чистым текстом, параметры в args.<имя>",
           "gridPos": {
             "h": 9,
-            "w": 12,
-            "x": 12,
-            "y": 29
+            "w": 24,
+            "x": 0,
+            "y": 37
           },
           "datasource": {
             "type": "victoriametrics-logs-datasource",
@@ -2205,6 +2986,8 @@ spec:
                   name: grafana-dashboard-bot
               - configMap:
                   name: grafana-dashboard-overview
+              - configMap:
+                  name: grafana-dashboard-postgres
               - configMap:
                   name: grafana-dashboard-scrapper
 ---

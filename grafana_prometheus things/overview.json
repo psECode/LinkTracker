@@ -1,34 +1,20 @@
 {
-  "title": "Обзор — Link Tracker",
+  "title": "Link Tracker · Overview",
   "uid": "link-tracker-overview",
-  "tags": [
-    "slo",
-    "overview"
-  ],
+  "tags": ["slo", "overview"],
   "timezone": "browser",
   "refresh": "30s",
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
+  "time": { "from": "now-6h", "to": "now" },
   "schemaVersion": 39,
-  "version": 3,
+  "version": 4,
   "panels": [
     {
       "id": 20,
       "type": "stat",
       "title": "Scrapper",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 0,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 0, "y": 0 },
       "targets": [
-        {
-          "refId": "A",
-          "expr": "max(up{pod=~\"scrapper-.*\"}[2m])"
-        }
+        { "refId": "A", "expr": "max(up{pod=~\"scrapper-.*\"}[2m])" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -39,39 +25,23 @@
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -84,17 +54,9 @@
       "id": 21,
       "type": "stat",
       "title": "Bot",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 4,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 0 },
       "targets": [
-        {
-          "refId": "A",
-          "expr": "max(up{pod=~\"bot-.*\"}[2m])"
-        }
+        { "refId": "A", "expr": "max(up{pod=~\"bot-.*\"}[2m])" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -105,39 +67,23 @@
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -150,16 +96,11 @@
       "id": 22,
       "type": "stat",
       "title": "Kafka",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 8,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 8, "y": 0 },
       "targets": [
         {
           "refId": "A",
-          "expr": "clamp_max(max(kafka_brokers), 1)"
+          "expr": "clamp_max(max(kafka_brokers) or max(up{pod=~\"kafka-exporter.*\"}), 1)"
         }
       ],
       "fieldConfig": {
@@ -167,43 +108,35 @@
           "decimals": 0,
           "min": 0,
           "max": 1,
+          "noValue": "unknown",
           "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "empty",
+                "result": { "text": "unknown", "color": "gray" }
+              }
+            },
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -216,17 +149,9 @@
       "id": 23,
       "type": "stat",
       "title": "Postgres",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 12,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 12, "y": 0 },
       "targets": [
-        {
-          "refId": "A",
-          "expr": "clamp_max(max(pg_up), 1)"
-        }
+        { "refId": "A", "expr": "clamp_max(max(pg_up), 1)" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -237,39 +162,23 @@
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -282,17 +191,9 @@
       "id": 24,
       "type": "stat",
       "title": "Web",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 16,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 16, "y": 0 },
       "targets": [
-        {
-          "refId": "A",
-          "expr": "max(up{pod=~\"frontend-.*\",container=\"nginx-exporter\"}[2m])"
-        }
+        { "refId": "A", "expr": "max(up{pod=~\"frontend-.*\",container=\"nginx-exporter\"}[2m])" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -303,39 +204,23 @@
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -348,17 +233,9 @@
       "id": 25,
       "type": "stat",
       "title": "AI service",
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 20,
-        "y": 0
-      },
+      "gridPos": { "h": 3, "w": 4, "x": 20, "y": 0 },
       "targets": [
-        {
-          "refId": "A",
-          "expr": "max(up{pod=~\"ai-agent.*\"}[2m])"
-        }
+        { "refId": "A", "expr": "max(up{pod=~\"ai-agent.*\"}[2m])" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -369,39 +246,23 @@
             {
               "type": "value",
               "options": {
-                "1": {
-                  "text": "up",
-                  "color": "green"
-                },
-                "0": {
-                  "text": "down",
-                  "color": "red"
-                }
+                "1": { "text": "up", "color": "green" },
+                "0": { "text": "down", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 0.5
-              }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.5 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "textMode": "value",
@@ -413,14 +274,9 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Доступность API",
+      "title": "API availability",
       "description": "Доля ответов без серверных ошибок (5xx) за 30 дней. Цель ≥95%. Бюджет ошибок: 5% отказов",
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 5
-      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 3 },
       "targets": [
         {
           "refId": "A",
@@ -439,10 +295,7 @@
               "options": {
                 "from": 0,
                 "to": 93,
-                "result": {
-                  "text": "не выполняется",
-                  "color": "red"
-                }
+                "result": { "text": "not met", "color": "red" }
               }
             },
             {
@@ -450,10 +303,7 @@
               "options": {
                 "from": 93,
                 "to": 95,
-                "result": {
-                  "text": "на грани",
-                  "color": "orange"
-                }
+                "result": { "text": "at risk", "color": "orange" }
               }
             },
             {
@@ -461,39 +311,23 @@
               "options": {
                 "from": 95,
                 "to": 100,
-                "result": {
-                  "text": "выполняется",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 93
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 93 },
+              { "color": "green", "value": 95 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -502,14 +336,9 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Обработка ссылок",
+      "title": "Link processing",
       "description": "Доля успешных проверок ссылок во внешних источниках и пользовательских add/remove за 5m. Цель ≥95%. Ошибки пользователя (4xx) не считаются сбоем — в SLI входят только серверные ошибки (5xx)",
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 5
-      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 3 },
       "targets": [
         {
           "refId": "A",
@@ -528,10 +357,7 @@
               "options": {
                 "from": 0,
                 "to": 93,
-                "result": {
-                  "text": "не выполняется",
-                  "color": "red"
-                }
+                "result": { "text": "not met", "color": "red" }
               }
             },
             {
@@ -539,10 +365,7 @@
               "options": {
                 "from": 93,
                 "to": 95,
-                "result": {
-                  "text": "на грани",
-                  "color": "orange"
-                }
+                "result": { "text": "at risk", "color": "orange" }
               }
             },
             {
@@ -550,39 +373,23 @@
               "options": {
                 "from": 95,
                 "to": 100,
-                "result": {
-                  "text": "выполняется",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 93
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 93 },
+              { "color": "green", "value": 95 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -591,14 +398,9 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Latency p95 API",
+      "title": "API latency p95",
       "description": "95-й процентиль времени ответа основных ручек API (scrapper) за 5m. Цель <1s",
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 5
-      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 3 },
       "targets": [
         {
           "refId": "A",
@@ -615,10 +417,7 @@
               "options": {
                 "from": 0,
                 "to": 0.7,
-                "result": {
-                  "text": "выполняется",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             },
             {
@@ -626,10 +425,7 @@
               "options": {
                 "from": 0.7,
                 "to": 1,
-                "result": {
-                  "text": "на грани",
-                  "color": "orange"
-                }
+                "result": { "text": "at risk", "color": "orange" }
               }
             },
             {
@@ -637,39 +433,23 @@
               "options": {
                 "from": 1,
                 "to": 999,
-                "result": {
-                  "text": "не выполняется",
-                  "color": "red"
-                }
+                "result": { "text": "not met", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.7
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.7 },
+              { "color": "red", "value": 1 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -680,12 +460,7 @@
       "type": "stat",
       "title": "Liveness",
       "description": "Минимальная доля времени, когда сервисы отвечали скрейпу, за 5m. Цель ≥98%. 99% означает периодический сбой скрейпа",
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 5
-      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 3 },
       "targets": [
         {
           "refId": "A",
@@ -704,10 +479,7 @@
               "options": {
                 "from": 0,
                 "to": 97,
-                "result": {
-                  "text": "не выполняется",
-                  "color": "red"
-                }
+                "result": { "text": "not met", "color": "red" }
               }
             },
             {
@@ -715,10 +487,7 @@
               "options": {
                 "from": 97,
                 "to": 98,
-                "result": {
-                  "text": "на грани",
-                  "color": "orange"
-                }
+                "result": { "text": "at risk", "color": "orange" }
               }
             },
             {
@@ -726,39 +495,23 @@
               "options": {
                 "from": 98,
                 "to": 100,
-                "result": {
-                  "text": "выполняется",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 97
-              },
-              {
-                "color": "green",
-                "value": 98
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 97 },
+              { "color": "green", "value": 98 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -767,14 +520,9 @@
     {
       "id": 6,
       "type": "stat",
-      "title": "Бюджет доступности",
+      "title": "Availability budget",
       "description": "Бюджет SLO доступности = 5% отказов за 30 дней. >100% — SLO нарушено, сервисный кредит",
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 0,
-        "y": 10
-      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 8 },
       "targets": [
         {
           "refId": "A",
@@ -792,10 +540,7 @@
               "options": {
                 "from": 0,
                 "to": 60,
-                "result": {
-                  "text": "ок",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             },
             {
@@ -803,10 +548,7 @@
               "options": {
                 "from": 60,
                 "to": 100,
-                "result": {
-                  "text": "тревожно",
-                  "color": "orange"
-                }
+                "result": { "text": "warning", "color": "orange" }
               }
             },
             {
@@ -814,39 +556,23 @@
               "options": {
                 "from": 100,
                 "to": 9999,
-                "result": {
-                  "text": "исчерпан",
-                  "color": "red"
-                }
+                "result": { "text": "exhausted", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 60
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "red", "value": 100 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -855,14 +581,9 @@
     {
       "id": 7,
       "type": "stat",
-      "title": "Бюджет ссылок",
+      "title": "Link budget",
       "description": "Бюджет SLO обработки ссылок = 5% серверных ошибок (5xx) за 30 дней. Ошибки пользователя (4xx) не расходуют бюджет. >100% — бюджет исчерпан",
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 8,
-        "y": 10
-      },
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 8 },
       "targets": [
         {
           "refId": "A",
@@ -880,10 +601,7 @@
               "options": {
                 "from": 0,
                 "to": 60,
-                "result": {
-                  "text": "ок",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             },
             {
@@ -891,10 +609,7 @@
               "options": {
                 "from": 60,
                 "to": 100,
-                "result": {
-                  "text": "тревожно",
-                  "color": "orange"
-                }
+                "result": { "text": "warning", "color": "orange" }
               }
             },
             {
@@ -902,39 +617,23 @@
               "options": {
                 "from": 100,
                 "to": 9999,
-                "result": {
-                  "text": "исчерпан",
-                  "color": "red"
-                }
+                "result": { "text": "exhausted", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 60
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "red", "value": 100 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -943,14 +642,9 @@
     {
       "id": 8,
       "type": "stat",
-      "title": "Бюджет latency",
+      "title": "Latency budget",
       "description": "Бюджет SLO latency = 5% запросов медленнее 1s за 30 дней. >100% — бюджет исчерпан",
-      "gridPos": {
-        "h": 5,
-        "w": 8,
-        "x": 16,
-        "y": 10
-      },
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 8 },
       "targets": [
         {
           "refId": "A",
@@ -968,10 +662,7 @@
               "options": {
                 "from": 0,
                 "to": 60,
-                "result": {
-                  "text": "ок",
-                  "color": "green"
-                }
+                "result": { "text": "ok", "color": "green" }
               }
             },
             {
@@ -979,10 +670,7 @@
               "options": {
                 "from": 60,
                 "to": 100,
-                "result": {
-                  "text": "тревожно",
-                  "color": "orange"
-                }
+                "result": { "text": "warning", "color": "orange" }
               }
             },
             {
@@ -990,39 +678,23 @@
               "options": {
                 "from": 100,
                 "to": 9999,
-                "result": {
-                  "text": "исчерпан",
-                  "color": "red"
-                }
+                "result": { "text": "exhausted", "color": "red" }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 60
-              },
-              {
-                "color": "red",
-                "value": 100
-              }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "red", "value": 100 }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto"
@@ -1031,14 +703,9 @@
     {
       "id": 9,
       "type": "timeseries",
-      "title": "Обработка ссылок по источникам",
+      "title": "Link processing by source",
       "description": "Успешность проверок во внешних источниках (github/stackoverflow), 5m",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 15
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
       "targets": [
         {
           "refId": "A",
@@ -1053,25 +720,14 @@
           "min": 0,
           "max": 100,
           "custom": {
-            "thresholdsStyle": {
-              "mode": "dashed+lines"
-            }
+            "thresholdsStyle": { "mode": "dashed+lines" }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 93
-              },
-              {
-                "color": "green",
-                "value": 95
-              }
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 93 },
+              { "color": "green", "value": 95 }
             ]
           }
         },
@@ -1081,27 +737,17 @@
         "legend": {
           "displayMode": "table",
           "placement": "bottom",
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ]
+          "calcs": ["lastNotNull", "max"]
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "tooltip": { "mode": "multi" }
       }
     },
     {
       "id": 10,
       "type": "timeseries",
-      "title": "Нагрузка",
+      "title": "Load",
       "description": "RPS API scrapper + темп проверок ссылок планировщиком",
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 15
-      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
       "targets": [
         {
           "refId": "A",
@@ -1111,7 +757,7 @@
         {
           "refId": "B",
           "expr": "sum(rate(link_checks_total{application=\"scrapper\"}[5m]))",
-          "legendFormat": "проверок ссылок/с"
+          "legendFormat": "link checks/s"
         }
       ],
       "fieldConfig": {
@@ -1124,14 +770,9 @@
         "legend": {
           "displayMode": "table",
           "placement": "bottom",
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ]
+          "calcs": ["lastNotNull", "max"]
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "tooltip": { "mode": "multi" }
       }
     }
   ]

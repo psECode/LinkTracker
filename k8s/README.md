@@ -41,7 +41,8 @@ kubectl -n link-tracker create secret tls frontend-tls --cert=/tmp/tls.crt --key
 
 # инфра
 kubectl apply -f k8s/10-postgres.yaml -f k8s/11-migrations-job.yaml \
-              -f k8s/12-redis.yaml -f k8s/13-kafka.yaml -f k8s/14-schema-registry.yaml
+              -f k8s/12-redis.yaml -f k8s/13-kafka.yaml -f k8s/13a-kafka-exporter.yaml \
+              -f k8s/14-schema-registry.yaml
 
 # миграция -> приложения
 kubectl -n link-tracker wait --for=condition=complete job/db-migrations --timeout=600s
